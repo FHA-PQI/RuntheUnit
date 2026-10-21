@@ -1,0 +1,1187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Run the Unit — LTC Edition</title>
+<style>
+:root{--bg:#EAF6F7;--card:#F6FAFB;--ink:#001549;--muted:#555d72;--line:#B7DDE1;--accent:#0699B4;--accent-ink:#fff;--accent-soft:#D7E7E8;--good:#2f6e12;--bad:#C23B3B;--warn:#8a5c00;--sig:#e06a00;--aim:#4f8a12;--shadow:none;--page:#001549;--teal:#0699B4;--tealD:#057f96;--lime:#96CB2D;--amber:#D99000;--navy2:#002060;--mono:"Aptos","Segoe UI Variable Text","Segoe UI",ui-rounded,"SF Pro Rounded",system-ui,-apple-system,sans-serif;--round:"Aptos","Segoe UI Variable Text","Segoe UI",ui-rounded,"SF Pro Rounded",system-ui,-apple-system,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+h1,h2,h3{line-height:1.25;margin:0}
+h2{font-size:15px;font-weight:650}
+h3{font-size:19px;margin-bottom:10px}
+p{margin:.5em 0}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
+.muted{color:var(--muted)}
+button{font:inherit;cursor:pointer}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:9px 14px;font-weight:600}
+.btn:hover:not(:disabled){filter:brightness(1.08)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.btn.sm{padding:6px 10px;font-size:13px}
+.btn.danger{background:transparent;color:var(--bad);border:1px solid var(--bad)}
+.link{background:none;border:0;color:var(--muted);text-decoration:underline;padding:6px 0;margin-top:8px}
+.wrap{max-width:1180px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow)}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.chip{font-size:12px;background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:99px;font-weight:600;white-space:nowrap}
+/* start */
+.hero{max-width:760px;margin:24px auto;padding:0 16px}
+.hero h1{font-size:32px;letter-spacing:-.01em}
+.hero h1 span{color:var(--accent)}
+.hero .lead{font-size:17px;color:var(--muted);margin:8px 0 18px}
+.seedrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0}
+.seedrow input{font:600 16px ui-monospace,Menlo,Consolas,monospace;padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:170px;text-transform:uppercase}
+details{border-top:1px solid var(--line);padding:10px 0}
+details summary{cursor:pointer;font-weight:600}
+details ul,details ol{padding-left:20px;margin:8px 0}
+.aim{background:var(--accent-soft);border-left:4px solid var(--accent);padding:8px 12px;border-radius:6px}
+/* game */
+.top{position:sticky;top:0;z-index:5;background:var(--card);border-bottom:1px solid var(--line);box-shadow:var(--shadow)}
+.top .in{max-width:1180px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-weight:750;font-size:17px}
+.brand span{color:var(--accent);font-weight:600;font-size:13px;margin-left:4px}
+.stats{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.stat{display:flex;flex-direction:column;gap:1px}
+.stat label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.stat b{font-size:15px}
+.dots{display:flex;gap:4px;padding-top:3px}
+.dots i{width:13px;height:13px;border-radius:50%;background:var(--accent);display:block}
+.dots i.used{background:transparent;border:2px solid var(--line)}
+.gwrow{display:flex;align-items:center;gap:8px}
+.bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden;width:100px}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .4s}
+.aimbar{font-size:14px;margin:12px 0}
+.aimbar .warnchip{background:var(--warn);color:#fff;border-radius:99px;padding:1px 8px;font-size:12px;margin-left:6px}
+.grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(320px,1fr);gap:14px;align-items:start}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.chart{width:100%;height:auto;display:block}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.chart .ax{fill:var(--muted);font-size:11px}
+.chart .cl{stroke:var(--ink);stroke-width:1.4;opacity:.7}
+.chart .lim{stroke:var(--bad);stroke-width:1.3;stroke-dasharray:5 4;fill:none;opacity:.8}
+.chart .aimln{stroke:var(--aim);stroke-width:1.5;stroke-dasharray:2 4}
+.chart .data{stroke:var(--accent);stroke-width:2;fill:none}
+.chart .pt{fill:var(--accent);stroke:var(--card);stroke-width:1.5}
+.chart .pt.sig{fill:var(--sig)}
+.chart .pt.hist{fill:var(--muted)}
+.chart .div{stroke:var(--muted);stroke-dasharray:3 3}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);margin-top:6px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.sw{width:14px;height:0;border-top:2px solid}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.signote{font-size:13px;margin-top:8px;padding:8px 10px;border-radius:8px;background:var(--bg)}
+.signote.on{border-left:3px solid var(--sig)}
+.locked{text-align:center;padding:18px 8px;color:var(--muted)}
+.locked p{margin:0 0 10px}
+.prow{display:grid;grid-template-columns:1fr 100px 38px;align-items:center;gap:8px;margin:6px 0;font-size:13px}
+.prow .bar{width:100%}
+.prow .why{grid-column:1/-1;font-size:12px;color:var(--warn);margin-top:-4px}
+.log{max-height:240px;overflow:auto;font-size:13px}
+.log div{padding:5px 0;border-bottom:1px solid var(--line);display:flex;gap:8px}
+.log div:last-child{border-bottom:0}
+.log .wk{color:var(--muted);font-size:11px;min-width:30px;padding-top:2px}
+.log .good{color:var(--good)} .log .bad{color:var(--bad)} .log .warn{color:var(--warn)}
+.tabs{display:flex;gap:4px;background:var(--bg);padding:4px;border-radius:10px;margin-bottom:12px}
+.tabs button{flex:1;border:0;background:transparent;padding:8px 6px;border-radius:7px;font-weight:600;color:var(--muted);font-size:14px}
+.tabs button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+.item{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+.item h4{margin:0 0 3px;font-size:14px}
+.item p{margin:0 0 8px;font-size:13px;color:var(--muted)}
+.item .acts{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.item.done{opacity:.85}
+.ok{color:var(--good);font-weight:650}
+.no{color:var(--bad);font-weight:650}
+.status{font-size:12px;font-weight:600;margin-bottom:6px}
+.res{font-size:12.5px;background:var(--bg);border-radius:8px;padding:7px 9px;margin:0 0 8px;color:var(--ink)}
+.endbar{position:sticky;bottom:12px;margin-top:4px}
+.endbar .btn{width:100%;padding:12px;font-size:16px}
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(10,20,30,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}
+.modal.hidden{display:none}
+.modal-box{background:var(--card);color:var(--ink);border-radius:14px;max-width:560px;width:100%;padding:22px;max-height:90vh;overflow:auto;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+.ev-tag{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);font-weight:700;margin-bottom:6px}
+.opts{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.opts button{text-align:left;background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:11px 13px;line-height:1.4}
+.opts button:hover{border-color:var(--accent)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--card);padding:10px 16px;border-radius:8px;font-size:14px;z-index:30;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+/* final */
+.score{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center}
+.big{font-size:56px;font-weight:800;color:var(--accent);line-height:1}
+.comp{display:grid;grid-template-columns:130px 1fr 70px;gap:8px;align-items:center;font-size:13px;margin:4px 0}
+.comp .bar{width:100%}
+.share{display:flex;gap:8px;margin-top:10px}
+.share input{flex:1;min-width:0;font:13px ui-monospace,Menlo,Consolas,monospace;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.fbg h3{font-size:15px;margin:14px 0 6px}
+.fbg ul{list-style:none;padding:0;margin:0}
+.fbg li{font-size:13.5px;padding:5px 0 5px 22px;position:relative;border-bottom:1px solid var(--line)}
+.fbg li::before{position:absolute;left:0;top:5px;font-weight:700}
+.fbg li.g::before{content:"✓";color:var(--good)}
+.fbg li.b::before{content:"✗";color:var(--bad)}
+table.truth{width:100%;border-collapse:collapse;font-size:13px}
+table.truth th,table.truth td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+table.truth th{font-size:12px;color:var(--muted);font-weight:600}
+.tag{font-size:11px;font-weight:700;padding:2px 7px;border-radius:99px;white-space:nowrap}
+.tag.hi{background:#d6f2e1;color:#156a39} .tag.mod{background:#e3f1f6;color:#0b5f78} .tag.lo{background:#f3ead9;color:#8a5a12} .tag.harm{background:#f9dcd8;color:#a3291c}
+/* planning tools */
+.modal-box.wide{max-width:880px}
+ul.hot{list-style:none;padding:0;margin:10px 0 14px}
+ul.hot li{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;padding:6px 0;border-bottom:1px solid var(--line)}
+ul.hot li.hid{color:var(--muted)}
+.hb{flex:0 0 40px;text-align:center;background:var(--bad);color:#fff;border-radius:99px;font-weight:700;font-size:12px;padding:2px 0}
+.hb.q{background:var(--muted)}
+.ddprev{border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;grid-template-columns:160px 1fr;gap:12px;margin:10px 0 14px;background:var(--bg)}
+.ddaim{background:var(--accent);color:var(--accent-ink);border-radius:10px;padding:10px;font-size:13px;font-weight:600;align-self:center}
+.ddaim span{display:block;font-size:11px;letter-spacing:.08em;opacity:.8;margin-bottom:4px}
+.ddhead{display:grid;grid-template-columns:200px 1fr;gap:10px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;margin-bottom:4px}
+.ddrow{display:grid;grid-template-columns:200px 1fr;gap:10px;align-items:center;margin:6px 0}
+.ddp{background:var(--card);border:1.5px solid var(--accent);border-radius:9px;padding:7px 9px;font-size:13px;font-weight:600;position:relative}
+.ddp::before{content:"";position:absolute;left:-13px;top:50%;width:12px;border-top:1.5px solid var(--accent)}
+.ddrow.nofit .ddp{border-style:dashed;border-color:var(--muted);color:var(--muted)}
+.ddrow.nofit .ddp::before{display:none}
+.ddc{display:flex;flex-wrap:wrap;gap:6px}
+.ddc span{background:var(--card);border:1px solid var(--line);border-radius:99px;padding:3px 10px;font-size:12.5px}
+.ddc span.bad{border-color:var(--bad);color:var(--bad)}
+.ddstep{margin:12px 0}
+.ddchecks{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin-top:8px}
+.ddchecks label{font-size:13.5px;display:flex;gap:8px;align-items:flex-start;cursor:pointer}
+.ddchecks input{margin-top:3px;accent-color:var(--accent)}
+.ddlinks{display:grid;gap:6px;margin-top:8px}
+.ddlinks label{display:grid;grid-template-columns:1fr 230px;gap:10px;align-items:center;font-size:13.5px}
+.ddlinks select{font:inherit;font-size:13px;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);width:100%}
+.coach .av{background:none!important;overflow:hidden}
+.meet{display:flex;gap:14px;align-items:center;margin:4px 0 16px}
+.meet p{margin:0;font-size:14px;color:var(--muted)}
+@media (max-width:700px){.ddprev{grid-template-columns:1fr}.ddhead,.ddrow{grid-template-columns:130px 1fr}.ddchecks{grid-template-columns:1fr}.ddlinks label{grid-template-columns:1fr}.ddp::before{display:none}}
+/* end-week prompting */
+.hdr-end{padding:9px 16px;white-space:nowrap}
+.pulse{animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(11,110,138,.55)}50%{box-shadow:0 0 0 9px rgba(11,110,138,0)}}
+.donebar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--accent-soft);border:1px solid var(--accent);border-radius:10px;padding:9px 12px;margin:0 0 12px;font-size:14px}
+.endbar{display:none}
+/* coach */
+.coach{position:fixed;right:20px;bottom:20px;z-index:15;max-width:340px;width:calc(100% - 40px);background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 30px rgba(10,30,50,.18);padding:12px 14px;display:flex;gap:10px;align-items:flex-start}
+.coach.hidden{display:none}
+.coach .av{flex:0 0 40px;height:40px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px}
+.coach .who{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:2px}
+.coach .msg{font-size:14px;line-height:1.45}
+.coach .cacts{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.coach .x{position:absolute;top:6px;right:8px;background:none;border:0;color:var(--muted);font-size:18px;line-height:1;padding:2px 4px}
+.coach .off{background:none;border:0;color:var(--muted);font-size:12px;text-decoration:underline;padding:0}
+.coach-target{outline:3px solid var(--warn);outline-offset:3px;border-radius:12px}
+.toggle{display:flex;align-items:center;gap:8px;font-size:14px;margin:4px 0 10px}
+.toggle input{width:18px;height:18px;accent-color:var(--accent)}
+@media (prefers-reduced-motion:reduce){.pulse{animation:none;outline:3px solid var(--warn)}}
+@media (max-width:860px){.hdr-end{display:none}.coach{right:12px;left:12px;width:auto;max-width:none;bottom:76px}.grid{grid-template-columns:1fr}.row2{grid-template-columns:1fr}.stats{gap:12px}.endbar{display:block;position:fixed;left:12px;right:12px;bottom:12px;z-index:6}.wrap{padding-bottom:80px}.score{grid-template-columns:1fr}.comp{grid-template-columns:100px 1fr 60px}}
+
+/* ================= CARTOON SKIN ================= */
+.golive{display:inline-flex;align-items:center;position:relative;margin-left:10px;width:170px;height:22px;background:#001549;border:3px solid #fff;border-radius:99px;overflow:hidden;vertical-align:middle}
+.golive i{position:absolute;left:0;top:0;bottom:0;background:#D99000}
+.golive em{position:relative;font-style:normal;font-size:12px;font-weight:900;color:#fff;margin:0 auto;text-shadow:0 1px 0 #001549}
+.item.warnitem{background:#FFF4E5;border-color:#D99000!important}
+.charter{background:#fff;border:3px solid var(--ink);border-radius:16px;padding:10px 12px;margin:10px 0;box-shadow:0 3px 0 var(--ink)}
+.ch-h{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:15px;margin-bottom:4px}
+.ch-t{font-size:13.5px;line-height:1.5}
+.ch-pick{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:8px;font-size:13.5px;font-weight:700}
+.ch-pick label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.ch-pick input{accent-color:#057f96;width:17px;height:17px}
+.ch-why{font-size:13px;margin:8px 0 0;color:var(--muted)}
+.gvo{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gvo div{background:#fff;border:3px solid var(--ink);border-radius:16px;padding:10px 12px}
+.gvo span{display:block;font-size:12px;font-weight:800;color:var(--muted)}
+.gvo b{font-size:22px;font-weight:900}
+
+html,body{background:#001549}
+body{background:radial-gradient(rgba(255,255,255,.10) 1.5px,transparent 2px) 0 0/26px 26px,linear-gradient(135deg,#001549 0%,#0a3f78 32%,#0699B4 68%,#38bfc9 84%,#96CB2D 100%) fixed;font-family:var(--round)}
+h2,h3,h4,.brand,.btn,.tabs button,.chip,.ev-tag,.stat label,.lbl,.roomlbl,.vn-name,summary,.tgl,.rankbtn,.status,.mlegend,.rv-row b,.opt-k{font-family:var(--round)}
+.svgfont{font-family:"Aptos","Segoe UI Variable Text","Segoe UI",ui-rounded,"SF Pro Rounded",system-ui,-apple-system,sans-serif}
+h2{font-weight:900;font-size:16px;letter-spacing:.01em}
+h3{font-weight:900}
+h4{font-weight:800}
+.card,.modal-box,.coach{border-radius:22px!important;border:4px solid var(--ink)!important;box-shadow:0 7px 0 var(--ink)}
+.item{border-radius:16px!important;border:3px solid var(--ink)!important;box-shadow:0 4px 0 var(--ink);background:#fff}
+.card{background:#F6FAFB}
+.btn{background:var(--tealD);color:#fff;border:3px solid var(--ink);border-radius:14px;box-shadow:0 4px 0 var(--ink);font-weight:900;letter-spacing:.01em;transition:transform .08s,box-shadow .08s}
+.btn:hover:not(:disabled){transform:translateY(-2px) scale(1.03);box-shadow:0 6px 0 var(--ink);filter:none}
+.btn:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.btn.ghost{background:#fff;color:var(--ink)}
+.btn.danger{background:#C23B3B;color:#fff}
+.btn.go,.hdr-end,.endbar .btn,.btn.start{background:#96CB2D;color:#001549}
+.btn:disabled{opacity:.45;transform:none}
+.chip{border-radius:99px;background:var(--ink);color:#fff;font-weight:800;font-size:11.5px;padding:3px 10px}
+.tabs{border-radius:16px;background:var(--ink);padding:5px;gap:5px}
+.tabs button{border-radius:11px;color:#cfe3ef;position:relative;font-weight:800;font-size:14px}
+.tabs button.on{background:#96CB2D;color:#001549;box-shadow:0 3px 0 #5f8a14}
+.bar,.pbar{border-radius:99px;background:#D7E7E8;border:3px solid var(--ink);height:14px;overflow:hidden}
+.bar i,.pbar i{border-radius:99px;display:block;height:100%}
+.top.hud{background:var(--ink);border-bottom:0;box-shadow:0 5px 0 rgba(0,0,0,.18);border-radius:0 0 24px 24px}
+.hud .in{padding:10px 18px}
+.hud .brand{color:#fff;font-weight:900;font-size:20px;letter-spacing:.02em;-webkit-text-stroke:0;text-shadow:0 3px 0 #0699B4}
+.hud .brand span{color:#fff;font-size:12px;text-shadow:none}
+.hud .stat{background:#0b2a5e;border-radius:14px;padding:5px 12px;border:2px solid #1f4f86}
+.hud .stat label{color:#9fdbe6;font-weight:800;font-size:10.5px}
+.hud .stat b,.hud .stat code{color:#fff;font-weight:900}
+.hud .stats{gap:10px}
+.pbar{width:110px;border-color:#fff;background:#001549}
+.coins{display:flex;gap:3px;padding-top:2px}
+.rankbtn{background:#96CB2D;color:var(--ink);border:3px solid #fff;border-radius:99px;padding:2px 10px;font-weight:900;font-size:12.5px;cursor:pointer}
+.tg{flex-direction:row!important;gap:5px!important;align-items:center;background:transparent!important;border:0!important;padding:0!important}
+.tgl{background:#0b2a5e;color:#fff;border:2px solid #3f6fa6;border-radius:99px;padding:4px 9px;font-size:11px;font-weight:900;cursor:pointer}
+.tgl[aria-pressed="true"]{background:#96CB2D;color:var(--ink);border-color:#fff}
+.hdr-end{border-color:#fff;box-shadow:0 4px 0 #000a24}
+.aimbar{color:#fff;font-weight:800;text-shadow:0 2px 0 rgba(0,21,73,.5);font-size:15px}
+.aimbar b{color:#c8ef6a}
+.donebar{border-radius:18px;border:4px solid var(--ink);background:#F0C36A;box-shadow:0 6px 0 var(--ink);animation:wobble 1.6s ease-in-out infinite}
+@keyframes wobble{0%,100%{transform:rotate(0)}50%{transform:rotate(-.4deg) scale(1.005)}}
+.roomlbl{color:#fff;font-weight:900;letter-spacing:.04em;font-size:15px;margin:-2px 0 -6px;text-shadow:0 2px 0 rgba(0,21,73,.5)}
+.mapcard{position:relative;padding:12px;background:#F6FAFB}
+svg.town{width:100%;height:auto;display:block;border-radius:16px;border:3px solid var(--ink)}
+svg.town .fac{cursor:pointer;transition:transform .15s}
+svg.town .fac:hover{filter:brightness(1.07) saturate(1.1)}
+svg.town .fac:focus{outline:none}
+svg.town .fac:focus rect:first-of-type{stroke:#96CB2D}
+.hop{animation:hop .9s ease-in-out infinite;transform-box:fill-box;transform-origin:center bottom}
+@keyframes hop{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.lamp{animation:lamp .35s steps(2,start) infinite}
+@keyframes lamp{50%{fill:#ff5a5a}}
+.bob{animation:bob .45s ease-in-out infinite alternate}
+@keyframes bob{from{transform:translateY(0)}to{transform:translateY(-3px)}}
+.mlegend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12px;font-weight:700;margin-top:10px;color:var(--ink)}
+.mlegend span{display:inline-flex;align-items:center;gap:5px}
+.mlegend i{width:13px;height:13px;display:inline-block;border:2.5px solid var(--ink);border-radius:50%}
+.mlegend i.ring{background:#EEF7ED;border-color:#96CB2D;border-radius:5px}
+.weekov{position:absolute;inset:56px 12px auto 12px;display:flex;justify-content:center;pointer-events:none;z-index:3}
+.weekov div{background:#96CB2D;color:var(--ink);border:4px solid var(--ink);border-radius:20px;box-shadow:0 7px 0 var(--ink);font:900 26px/1 var(--round);padding:12px 22px;display:flex;gap:14px;align-items:center;animation:popin .45s cubic-bezier(.2,1.6,.4,1) both}
+.weekov b{color:#001549}
+@keyframes popin{from{transform:scale(.3) rotate(-6deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+.modal{background:rgba(0,21,73,.6)}
+.modal:not(.hidden) .modal-box{animation:popin .35s cubic-bezier(.2,1.5,.4,1) both}
+.vn{display:flex;gap:14px;align-items:center;margin-bottom:12px}
+.vn-face{flex:0 0 auto;line-height:0;filter:drop-shadow(0 4px 0 rgba(0,21,73,.9))}
+.vn-face.facpic{background:#62cc68;border:3px solid var(--ink);border-radius:18px;padding:4px;filter:none;box-shadow:0 4px 0 var(--ink)}
+.vn-name{font-weight:900;font-size:17px;color:var(--ink)}
+.vn-name span{display:inline-block;margin-left:8px;font-weight:800;font-size:11.5px;color:#fff;background:#057f96;border-radius:99px;padding:2px 9px;vertical-align:middle}
+.vn-body h3{margin:6px 0 0}
+.vn-text{background:#fff;border:3px solid var(--ink);border-radius:18px;padding:12px 14px;position:relative;box-shadow:0 4px 0 var(--ink)}
+.vn-text::before{content:"";position:absolute;top:-14px;left:40px;border:10px solid transparent;border-bottom-color:var(--ink)}
+.vn-text::after{content:"";position:absolute;top:-8px;left:43px;border:7px solid transparent;border-bottom-color:#fff;border-top:0}
+.vn-text p:first-child{margin-top:0}.vn-text p:last-child{margin-bottom:0}
+.opts button{border-radius:16px;border:3px solid var(--ink);background:#fff;box-shadow:0 4px 0 var(--ink);display:flex;gap:10px;align-items:flex-start;font-weight:600;transition:transform .08s}
+.opts button:hover{background:#EEF7ED;transform:translateY(-2px);border-color:var(--ink)}
+.opt-k{flex:0 0 26px;height:26px;background:#057f96;color:#fff;border:2.5px solid var(--ink);border-radius:50%;font:900 13px/21px var(--round);text-align:center}
+.ev-tag{color:#057f96;font-weight:900}
+.rv-big{font:900 46px/1.05 var(--round);color:var(--ink);margin:6px 0 2px}
+.rv-big small{font:800 15px var(--round);color:var(--muted)}
+.rv-sub{font-size:14px;margin-bottom:10px}
+.rv-row{display:flex;justify-content:space-between;gap:12px;border-top:3px dotted #B7DDE1;padding:9px 0;font-size:14.5px}
+.rv-row b{font-size:13px;font-weight:900}
+.rv-row span{text-align:right}
+.rv-badges{margin-top:8px}
+.badgegrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 14px}
+.bdg{display:flex;gap:10px;align-items:center;background:#fff;border:3px solid var(--ink);border-radius:16px;padding:8px 10px;box-shadow:0 3px 0 var(--ink)}
+.bdg b{display:block;font-size:13.5px;font-weight:900}
+.bdg span{font-size:12.5px;color:var(--muted)}
+.bdg.locked{opacity:.55;box-shadow:none}
+.title{max-width:840px;margin:18px auto;padding:0 16px}
+.tlogo{font:900 58px/1 var(--round);color:#fff;-webkit-text-stroke:3px var(--ink);text-shadow:0 6px 0 var(--ink),0 10px 0 #96CB2D;letter-spacing:.01em;text-align:center;margin-top:12px;transform:rotate(-2deg)}
+.tsub{color:#fff;font:900 15px var(--round);text-align:center;letter-spacing:.08em;margin:20px 0 16px;text-shadow:0 2px 0 rgba(0,21,73,.5)}
+.tmap{margin-bottom:12px}
+.btn.start{width:100%;font-size:22px;padding:14px;margin:8px 0 6px;border-radius:18px}
+.lbl{font-weight:900;font-size:13px}
+.seedrow input{border-radius:12px;border:3px solid var(--ink);background:#fff;font-weight:800}
+.meet p{color:var(--ink)}
+.coach .av{border:0;border-radius:50%;flex-basis:44px;height:44px}
+.toast{border-radius:16px;background:var(--ink);color:#c8ef6a;border:3px solid #fff;font-weight:900}
+.pulse{animation:cpulse 1.1s ease-in-out infinite}
+@keyframes cpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07);box-shadow:0 4px 0 var(--ink),0 0 0 7px rgba(150,203,45,.75)}}
+.signote{border-radius:12px}.res{border-radius:12px}
+.locked{border-radius:12px}
+.log div{border-color:#D7E7E8}
+details{border-color:#D7E7E8}
+.ddp{border-radius:12px}.ddaim{border-radius:14px}
+ul.hot .hb{border:2px solid var(--ink)}
+.tag{border:2px solid var(--ink)}
+.share input{border-radius:12px;border:3px solid var(--ink)}
+.big{color:#0699B4;-webkit-text-stroke:2px var(--ink);font-size:64px}
+@media (prefers-reduced-motion:reduce){.hop,.lamp,.pulse,.bob,.donebar,.weekov div,.modal-box{animation:none!important}}
+@media (max-width:860px){.top.hud{position:static}.tlogo{font-size:38px}.badgegrid{grid-template-columns:1fr}.tg{display:none!important}.rv-big{font-size:34px}.hud .stat{padding:4px 8px}}
+
+/* v7 additions */
+.leads{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.ld{background:#fff;border:3px solid var(--ink);border-radius:16px;padding:10px 12px;box-shadow:0 3px 0 var(--ink)}
+.ld-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.ld-h b{font-size:14px}.ld-h span{font-weight:900;color:#057f96}
+.ld .bar{width:100%}.ld-h span{white-space:nowrap;margin-left:6px}
+.ld ul{list-style:none;padding:0;margin:8px 0 0}
+.ld li{font-size:12.5px;padding:3px 0 3px 18px;position:relative;line-height:1.35}
+.ld li::before{position:absolute;left:0;top:3px;font-weight:900}
+.ld li.g::before{content:"✓";color:var(--good)}.ld li.p::before{content:"◐";color:var(--warn)}.ld li.b::before{content:"✗";color:var(--bad)}
+.bdg.locked{text-align:left;padding:8px 10px;color:inherit}
+.tabs button{white-space:nowrap;padding:8px 4px;font-size:13.5px}
+.tcount{min-width:17px!important;height:17px!important;line-height:13px!important;margin-left:4px!important;padding:0 4px!important;font-size:10.5px!important}
+.spendlbl{font-weight:900;font-size:14px;color:#001549;margin:0 0 6px 4px}
+.tcount{display:inline-block;min-width:19px;height:19px;line-height:15px;margin-left:6px;padding:0 5px;border-radius:99px;background:#D99000;color:#fff;border:2px solid #fff;font-size:11px;font-weight:900;vertical-align:1px}
+.tabs button.unseen{animation:tabnudge 2.2s ease-in-out infinite}
+@keyframes tabnudge{0%,80%,100%{transform:none}86%{transform:translateY(-3px)}92%{transform:translateY(0)}}
+.howwin{background:#fff;border:3px solid var(--ink);border-radius:18px;padding:12px 14px;margin:10px 0 14px;box-shadow:0 4px 0 var(--ink)}
+.hw-aim{font-size:15px;margin-bottom:10px;padding-left:10px;border-left:6px solid #96CB2D}
+.hw-aim>b:first-child{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#057f96}
+.hw-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.hw-grid div{background:#EAF6F7;border:2px solid #B7DDE1;border-radius:12px;padding:8px;text-align:center}
+.hw-grid b{display:block;font-size:22px;font-weight:900;color:#001549;line-height:1.1}
+.hw-grid span{display:block;font-weight:800;font-size:13px;color:#057f96}
+.hw-grid em{display:block;font-style:normal;font-size:11.5px;color:var(--muted);line-height:1.3;margin-top:2px}
+.rv-row.anec{background:#FFF4E5;border:2px solid #D99000;border-radius:12px;padding:9px 10px;margin:6px 0}
+.rv-row.anec span{text-align:left}
+.penlog{font-size:12.5px;color:#C23B3B;margin:-2px 0 6px;padding-left:4px}
+.penlog div{margin:2px 0}
+@media (max-width:700px){.hw-grid{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){.tabs button.unseen{animation:none}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-box" id="modalBox"></div></div>
+<div id="toast" class="toast" role="status"></div>
+<div id="coach" class="coach hidden" role="status" aria-live="polite"></div>
+<script>
+"use strict";
+/* ---------- constants ---------- */
+const TOTAL_WEEKS=16, AP_WEEK=3, BASE=0.22, AIM=0.15;
+const SITES=['Cedar Lodge','Maple Grove','Riverside Manor','Willow Creek','Harbourview','Pinecrest','Elm Court','Sunnyside'];
+const STAKE={
+  nursing:{name:'LTC nursing staff',desc:'Nurses and care aides who decide, often at 2 a.m., whether a resident goes back to the ED.'},
+  phys:{name:'LTC physicians & families',desc:'Attending physicians and families who shape goals of care.'},
+  ed:{name:'ED team',desc:'Emergency physicians and nurses who discharge residents back to LTC.'},
+  pharmacy:{name:'Pharmacy & supplies',desc:'Pharmacy protocols, IV supplies and medication reviews.'}
+};
+const CHANGES=[
+  {id:'acp',short:'Goals-of-care',name:'Goals-of-care conversations',desc:'Structured advance care planning with residents and families after an ED visit.',effect:0.14,ramp:0.12,needs:'phys',tier:'hi',lesson:'High yield but slow: needs physician and family engagement and takes weeks to build.'},
+  {id:'virtual',short:'Virtual consult',name:'Virtual physician consult before transfer',desc:'An on-call virtual consult line that LTC nurses can call before sending a resident to the ED.',effect:0.12,ramp:0.25,needs:'nursing',tier:'hi',lesson:'High yield and fast when nurses help design it; low uptake when imposed.'},
+  {id:'handover',short:'ED→LTC handover',name:'ED → LTC discharge handover',desc:'Structured discharge summary plus a follow-up call to the facility within 48 hours.',effect:0.10,ramp:0.30,needs:'ed',tier:'mod',lesson:'Closes the loop at the moment of highest risk: a resident just back from the ED.'},
+  {id:'iv',short:'In-house IV',name:'In-house IV / subcut therapy',desc:'Treat dehydration and some infections in the facility instead of the ED.',effect:0.09,ramp:0.15,needs:'pharmacy',hardNeed:true,tier:'mod',lesson:'Solid yield, but only once pharmacy protocols and supplies exist.'},
+  {id:'ewt',short:'Early warning tool',name:'Change-in-condition early warning tool',desc:'A simple tool and huddle to help staff spot deterioration early and escalate in-house.',effect:0.06,ramp:0.15,needs:'nursing',tier:'lo',lesson:'Modest on its own; works when nursing staff own the tool.'},
+  {id:'pharm',short:'Med review',name:'Pharmacist medication review',desc:'A pharmacist reviews medications within a week of any ED visit.',effect:0.04,ramp:0.10,needs:null,tier:'lo',lesson:'Small effect alone; useful as part of a bundle.'},
+  {id:'poster',short:'Education campaign',name:'Education campaign (posters & email)',desc:'Remind LTC staff about alternatives to ED transfer through posters and an email series.',effect:0.01,ramp:0.40,needs:null,tier:'lo',lesson:'Education and reminders are weak changes. They rarely change how work is done.'},
+  {id:'mandate',short:'Mandatory approval',name:'Mandatory physician approval for transfers',desc:'Require on-call physician sign-off before any non-911 transfer. Fast and decisive.',effect:0.25,ramp:0.50,needs:null,harm:true,tier:'harm',lesson:'Looks like success on the outcome chart while delaying care. Balancing measures exist for exactly this.'}
+];
+const CH=Object.fromEntries(CHANGES.map(c=>[c.id,c]));
+/* planning tools */
+const DRIVERS=[
+  {id:'early',name:'Early recognition & in-house management',real:true},
+  {id:'control',name:'Tighter control over who can authorize transfers',real:false,why:'Restricting who can send residents cuts transfers by delaying care, not by meeting the need behind them.'},
+  {id:'goc',name:'Goals of care aligned with resident wishes',real:true},
+  {id:'trans',name:'Safe ED → LTC transitions',real:true},
+  {id:'edwait',name:'Shorter ED wait times',real:false,why:'Shorter waits help ED flow but don\'t change whether a resident comes back within 30 days.'},
+  {id:'meds',name:'Medication safety',real:true}
+];
+const DRV=Object.fromEntries(DRIVERS.map(d=>[d.id,d]));
+const REF_LINK={acp:'goc',virtual:'early',ewt:'early',iv:'early',handover:'trans',pharm:'meds',poster:'none',mandate:'none'};
+const STEPS=[
+  {id:'cond',lane:0,label:'Change in condition'},{id:'assess',lane:0,label:'Nurse assessment'},{id:'decide',lane:0,label:'Transfer decision'},
+  {id:'ed',lane:1,label:'ED visit'},{id:'dc',lane:1,label:'ED discharge'},{id:'back',lane:0,label:'Back at LTC'},{id:'fu',lane:0,label:'Follow-up'}
+];
+const HOTS=[
+  {step:'cond',share:5,need:null,text:'Some conditions (dehydration, simple infections) could be treated on site, but there\'s no way to do it.'},
+  {step:'assess',share:15,need:'nursing',text:'Deterioration is spotted late, often after a change of shift.'},
+  {step:'decide',share:30,need:'nursing',text:'After-hours transfer decisions are made with no physician input.'},
+  {step:'dc',share:20,need:'ed',text:'Discharge information doesn\'t reach the facility, or arrives days later.'},
+  {step:'back',share:15,need:null,text:'Goals of care were never discussed, so families default to "send them in."'},
+  {step:'fu',share:15,need:null,text:'No structured check-in in the 48 hours after return; ED medication changes go unreconciled.'}
+];
+
+const TIERS={hi:'High yield',mod:'Moderate',lo:'Low yield',harm:'Harmful'};
+const OBJS=['Planning','Measures','Change ideas','PDSA','Is it QI?','Variation'];
+const OBJ_LABEL={Planning:'Planning tools',Measures:'Measures','Change ideas':'Change ideas',PDSA:'PDSA cycles','Is it QI?':'Is it QI? (vs implementation, research, just-do-it)',Variation:'Variation (SPC)'};
+const RULES={beyond:'point outside the control limits',shift:'shift: 8+ points on one side of the centre line',trend:'trend: 6 points steadily rising or falling','2of3':'2 of 3 points beyond 2σ on one side'};
+
+/* ---------- seeded RNG ---------- */
+function xmur3(str){let h=1779033703^str.length;for(let i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=h<<13|h>>>19;}return function(){h=Math.imul(h^(h>>>16),2246822507);h=Math.imul(h^(h>>>13),3266489909);return (h^=h>>>16)>>>0;};}
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function gauss(r){let u=0;while(u===0)u=r();const v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+function makeObs(n,p,z){const sd=Math.sqrt(n*p*(1-p));let x=Math.round(n*p+z*sd);x=Math.max(0,Math.min(n,x));return {n,x,p:x/n};}
+
+/* ---------- helpers ---------- */
+const $=id=>document.getElementById(id);
+const pct=v=>(v*100).toFixed(1)+'%';
+const clamp=v=>Math.max(0,Math.min(100,Math.round(v)));
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let S=null, curEv=null, toastT=null;
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2600);}
+function addLog(text,kind){S.log.push({w:Math.min(S.week,TOTAL_WEEKS),text,kind:kind||''});}
+function fbAdd(obj,good,text){if(!S.fb.some(f=>f.text===text))S.fb.push({obj,good,text});}
+function showModal(html,wide){const mb=$('modalBox'),wasOpen=!$('modal').classList.contains('hidden');mb.innerHTML=html;mb.classList.toggle('wide',!!wide);$('modal').classList.remove('hidden');if(!wasOpen){const b=mb.querySelector('button,input,select');if(b)b.focus();}}
+function closeModal(){$('modal').classList.add('hidden');$('modalBox').innerHTML='';$('modalBox').classList.remove('wide');if(S)S.ddDraft=null;}
+function randomSeed(){return 'PQI-'+(1000+Math.floor(Math.random()*9000));}
+
+/* ---------- game setup ---------- */
+function initGame(seed,coach,sound){
+  const s=(seed||'').trim().toUpperCase().slice(0,24)||randomSeed();
+  const coachOn=coach===undefined?true:!!coach;
+  const rnd=mulberry32(xmur3(s)());
+  const hist=[];for(let i=0;i<12;i++){const n=50+Math.floor(rnd()*21);hist.push(makeObs(n,BASE,gauss(rnd)));}
+  const wk=[null];for(let i=1;i<=TOTAL_WEEKS;i++){wk.push({n:50+Math.floor(rnd()*21),z:gauss(rnd),hz:gauss(rnd)});}
+  const rolls={};CHANGES.forEach(c=>{rolls[c.id]={pdsa:rnd(),spread:rnd(),site:SITES[Math.floor(rnd()*SITES.length)]};});
+  const flu=7+Math.floor(rnd()*3);
+  const sched={rct:3+Math.floor(rnd()*2),reb:5+Math.floor(rnd()*2),spike:flu+1,staff:11,justdo:12,drug:13,champ:14,pub:15,headline:16};
+  const fac=SITES.map(()=>({mult:0.75+rnd()*0.5,mor:Math.round(rnd()*20-10)}));
+  const ch={};CHANGES.forEach(c=>ch[c.id]={tested:false,cycles:0,results:[],pending:null,active:false,adoption:0,stalled:false,everActive:false,spreadUntested:false,spreadWeek:0});
+  S={seed:s,week:1,ap:AP_WEEK,apNext:AP_WEEK,goodwill:55,
+    m:{outcome:false,baseline:false,process:false,balancing:false},outcomeStart:null,engaged:{},ch,
+    obs:[],harm:[],harmAccum:0,incident:false,harmWarned:false,freezeUntil:0,
+    fb:[],log:[],judg:{},pdsa:{count:0,pred:0,correct:0},fired:{},queue:[{id:'intro'},{id:'rollout'}],rollout:null,charter:null,pendingTour:false,tabsSeen:{plan:true},penLog:[],anecdote:0,lf:{eng:{},protect:null,succession:null},penalty:0,over:false,tab:'measure',
+    hist,wk,rolls,flu,sched,baseMean:hist.reduce((a,o)=>a+o.x,0)/hist.reduce((a,o)=>a+o.n,0),
+    specials:{[flu]:0.10,[flu+1]:0.05},
+    coach:coachOn,coachSeen:{},coachMsg:null,tour:null,lastAct:Date.now(),idleShown:{},
+    map:null,maps:[],dd:{current:{drivers:[],links:{}},saves:[]},ddDraft:null,
+    fac,badges:[],sound:!!sound,motion:!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches),anim:false,review:null,spreadBeforeMeasure:false,harmEarly:false};
+  S.tab='plan';
+  curEv=null;closeModal();render();runQueue();window.scrollTo(0,0);
+}
+
+/* ---------- actions ---------- */
+function spend(c){if(S.ap<c){toast(c===1?'No actions left this week. End the week to continue.':'That needs '+c+' actions; you have '+S.ap+'.');return false;}S.ap-=c;return true;}
+function capFor(id){const c=CH[id],st=S.ch[id];let cap=1;if(c.needs&&!S.engaged[c.needs])cap=c.hardNeed?0:0.3;if(st.stalled)cap=Math.min(cap,0.25);return cap;}
+const ACT={
+  outcome(){if(S.m.outcome||!spend(1))return;S.m.outcome=true;S.outcomeStart=S.week;addLog('Defined the outcome measure: 30-day ED return rate for LTC residents, tracked weekly on a p-chart.');fbAdd('Measures',true,'Defined an outcome measure tied directly to the aim (30-day ED return rate).');},
+  baseline(){if(!S.m.outcome){toast('Define the outcome measure first.');return;}if(S.m.baseline||!spend(2))return;S.m.baseline=true;addLog('Pulled 12 weeks of pre-project data. Your chart now has a baseline centre line and control limits.');fbAdd('Measures',true,S.week<=3?'Established a baseline early, so every later result could be judged against it.':'Pulled baseline data. Late, but it still gave you a stable reference to judge change against.');},
+  process(){if(S.m.process||!spend(1))return;S.m.process=true;addLog('Set up process measures: how much each spread change is actually being used across the 8 sites.');fbAdd('Measures',true,'Tracked process measures, so you could tell whether changes were actually happening.');},
+  balancing(){if(S.m.balancing||!spend(1))return;S.m.balancing=true;if(S.week<=4)S.harmEarly=true;addLog('Set up a balancing measure: delayed or missed escalations (residents who needed acute care but didn\'t get it in time).');fbAdd('Measures',true,'Set up a balancing measure to watch for unintended harm.');},
+  engage(k){if(S.engaged[k]||!spend(1))return;S.engaged[k]=true;S.lf.eng[k]=true;S.goodwill=clamp(S.goodwill+6);addLog('Engaged '+STAKE[k].name+' to co-design the changes that affect them.','good');},
+  spread(id){const c=CH[id],st=S.ch[id];if(st.active||st.pending)return;
+    if(S.freezeUntil>S.week){toast('Spreading is paused until week '+S.freezeUntil+' because of an earlier decision.');return;}
+    if(!spend(2))return;
+    if(!(S.m.outcome&&S.m.baseline))S.spreadBeforeMeasure=true;
+    st.active=true;st.everActive=true;st.spreadWeek=S.week;st.adoption=0;
+    if(!st.tested){st.spreadUntested=true;
+      if(S.rolls[id].spread<0.45){st.stalled=true;S.goodwill=clamp(S.goodwill-8);addLog('Spread "'+c.name+'" to all 8 sites without testing. Staff hit problems nobody anticipated and adoption stalled.','bad');fbAdd('PDSA',false,'Spread "'+c.name+'" without a PDSA test, and it stalled. Small tests surface problems before they reach every site.');}
+      else{addLog('Spread "'+c.name+'" to all 8 sites without testing first.','warn');fbAdd('PDSA',false,'Spread "'+c.name+'" without testing first. It didn\'t stall this time, but you skipped what a PDSA would have taught you.');}}
+    else{st.stalled=false;addLog('Spread "'+c.name+'" to all 8 sites after testing it.','good');fbAdd('PDSA',true,'Tested "'+c.name+'" with a PDSA before spreading it.');}
+    if(c.hardNeed&&!S.engaged[c.needs]){S.goodwill=clamp(S.goodwill-6);addLog('"'+c.name+'" couldn\'t start: there are no pharmacy protocols or IV supplies at the sites.','bad');}
+  },
+  stop(id){const st=S.ch[id];if(!st.active)return;st.active=false;st.adoption=0;addLog('Stopped "'+CH[id].name+'".');},
+  walk(){if(!spend(1))return;const rev=HOTS.map(h=>!h.need||!!S.engaged[h.need]);S.map={week:S.week,rev};S.maps.push(S.map);
+    const hidden=rev.filter(r=>!r).length;
+    addLog('Walked the resident\'s journey from LTC to the ED and back.'+(hidden?' '+hidden+' step'+(hidden>1?'s were':' was')+' unclear without frontline input.':' Frontline staff filled in every step.'),hidden?'warn':'good');
+    setTimeout(()=>openMap(),0);}
+};
+
+/* ---------- process map & driver diagram ---------- */
+function wrapLabel(t){const w=t.split(' ');if(t.length<=12)return [t];const mid=Math.ceil(w.length/2);return [w.slice(0,mid).join(' '),w.slice(mid).join(' ')];}
+function mapSVG(rev){
+  const W=680,H=236,bw=78,bh=46,X=i=>62+i*88,Yb=l=>l===0?50:156;
+  let s='<svg viewBox="0 0 '+W+' '+H+'" class="chart" role="img" aria-label="Process map of the resident journey"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--muted)"/></marker></defs>';
+  s+='<rect x="2" y="26" width="'+(W-4)+'" height="94" rx="10" style="fill:var(--accent-soft);opacity:.55"/><rect x="2" y="130" width="'+(W-4)+'" height="94" rx="10" style="fill:var(--bg)"/>';
+  s+='<text x="14" y="78" class="ax" style="font-weight:700" transform="rotate(-90 14 78)" text-anchor="middle">LTC</text><text x="14" y="182" class="ax" style="font-weight:700" transform="rotate(-90 14 182)" text-anchor="middle">ED</text>';
+  STEPS.forEach((st,i)=>{if(i===STEPS.length-1)return;const n=STEPS[i+1],x1=X(i)+bw,y1=Yb(st.lane)+bh/2,x2=X(i+1),y2=Yb(n.lane)+bh/2;
+    if(st.lane===n.lane)s+='<path d="M'+x1+' '+y1+'H'+(x2-2)+'" fill="none" style="stroke:var(--muted)" stroke-width="1.5" marker-end="url(#ah)"/>';
+    else{const mx=(x1+x2)/2;s+='<path d="M'+x1+' '+y1+'H'+mx+'V'+y2+'H'+(x2-2)+'" fill="none" style="stroke:var(--muted)" stroke-width="1.5" marker-end="url(#ah)"/>';}});
+  STEPS.forEach((st,i)=>{const x=X(i),y=Yb(st.lane),lines=wrapLabel(st.label);
+    s+='<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+bh+'" rx="8" style="fill:var(--card);stroke:var(--line)" stroke-width="1.5"/>';
+    lines.forEach((l,k)=>{s+='<text x="'+(x+bw/2)+'" y="'+(y+bh/2+4+(k-(lines.length-1)/2)*13)+'" text-anchor="middle" style="fill:var(--ink);font-size:11.5px;font-weight:600">'+l+'</text>';});
+    HOTS.forEach((h,hi)=>{if(h.step!==st.id)return;const cx=x+bw-6,cy=y-2;
+      s+=rev[hi]?'<circle cx="'+cx+'" cy="'+cy+'" r="13" style="fill:var(--bad)"/><text x="'+cx+'" y="'+(cy+4)+'" text-anchor="middle" style="fill:#fff;font-size:10.5px;font-weight:700">'+h.share+'%</text>'
+        :'<circle cx="'+cx+'" cy="'+cy+'" r="13" style="fill:var(--muted)"/><text x="'+cx+'" y="'+(cy+4.5)+'" text-anchor="middle" style="fill:#fff;font-size:13px;font-weight:700">?</text>';});});
+  return s+'</svg>';
+}
+function mapList(rev){return '<ul class="hot">'+HOTS.map((h,i)=>{const st=STEPS.find(s=>s.id===h.step);return rev[i]?'<li><span class="hb">'+h.share+'%</span><span><b>'+st.label+':</b> '+h.text+'</span></li>':'<li class="hid"><span class="hb q">?</span><span><b>'+st.label+':</b> unclear. Nobody from '+STAKE[h.need].name+' walked this step with you.</span></li>';}).join('')+'</ul>';}
+function openMap(){if(!S||!S.map)return;const m=S.map;
+  showModal('<div class="ev-tag">Process map · walked in week '+m.week+'</div><h3>Resident journey: LTC → ED → LTC</h3><p class="muted" style="font-size:13px">Red badges show each step\'s share of avoidable 30-day returns, found by walking the process.</p>'+mapSVG(m.rev)+mapList(m.rev)+'<button class="btn" onclick="closeModal()">Close</button>',true);}
+function ddSummary(dd){const linked=Object.values(dd.links).filter(v=>v).length;return dd.drivers.length+' driver'+(dd.drivers.length===1?'':'s')+' · '+linked+' of '+CHANGES.length+' change ideas placed';}
+function openDD(){if(busy())return;S.ddDraft=JSON.parse(JSON.stringify(S.dd.current));renderDD();}
+function ddToggle(id){const d=S.ddDraft;const i=d.drivers.indexOf(id);if(i>=0){d.drivers.splice(i,1);Object.keys(d.links).forEach(k=>{if(d.links[k]===id)d.links[k]='';});}else d.drivers.push(id);renderDD();}
+function ddLink(cid,val){S.ddDraft.links[cid]=val;renderDD();}
+function renderDD(){const d=S.ddDraft;const scroll=$('modalBox').scrollTop;
+  const drv='<div class="ddstep"><b>1. Choose your primary drivers.</b> <span class="muted">What has to be true for returns to fall?</span><div class="ddchecks">'+DRIVERS.map(x=>'<label><input type="checkbox" '+(d.drivers.includes(x.id)?'checked':'')+' onchange="ddToggle(\''+x.id+'\')"> '+x.name+'</label>').join('')+'</div></div>';
+  const opts=cid=>'<option value="">Not placed yet</option>'+d.drivers.map(id=>'<option value="'+id+'"'+(d.links[cid]===id?' selected':'')+'>'+DRV[id].name+'</option>').join('')+'<option value="none"'+(d.links[cid]==='none'?' selected':'')+'>Doesn\'t fit a driver</option>';
+  const links='<div class="ddstep"><b>2. Link each change idea to a driver.</b><div class="ddlinks">'+CHANGES.map(c=>'<label><span>'+c.name+'</span><select onchange="ddLink(\''+c.id+'\',this.value)">'+opts(c.id)+'</select></label>').join('')+'</div></div>';
+  const rows=d.drivers.map(id=>{const ideas=CHANGES.filter(c=>d.links[c.id]===id);return '<div class="ddrow"><div class="ddp">'+DRV[id].name+'</div><div class="ddc">'+(ideas.map(c=>'<span>'+c.short+'</span>').join('')||'<em class="muted">No change ideas yet</em>')+'</div></div>';}).join('');
+  const nofit=CHANGES.filter(c=>d.links[c.id]==='none');
+  const prev='<div class="ddprev"><div class="ddaim"><span>AIM</span>Reduce 30-day ED returns among LTC residents from 22% to 15% in 16 weeks</div><div class="ddbody"><div class="ddhead"><span>Primary drivers</span><span>Change ideas</span></div>'+(rows||'<p class="muted" style="font-size:13px;margin:6px 0">Choose drivers in step 1 to build your diagram.</p>')+(nofit.length?'<div class="ddrow nofit"><div class="ddp">Doesn\'t fit a driver</div><div class="ddc">'+nofit.map(c=>'<span>'+c.short+'</span>').join('')+'</div></div>':'')+'</div></div>';
+  const last=S.dd.saves.length?'Last saved in week '+S.dd.saves[S.dd.saves.length-1].week+'. ':'';
+  showModal('<div class="ev-tag">Driver diagram · your theory of change</div><h3>What drives ED returns from LTC?</h3><p class="muted" style="font-size:13px">'+last+'You can revise this any time as you learn from tests and data. Saving is free.</p>'+prev+drv+links+'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn" onclick="saveDD()">Save diagram</button><button class="btn ghost" onclick="closeModal()">Cancel</button></div>',true);
+  $('modalBox').scrollTop=scroll;}
+function saveDD(){const d=S.ddDraft;const snap=JSON.stringify({drivers:d.drivers.slice().sort(),links:d.links});const prev=S.dd.saves.length?S.dd.saves[S.dd.saves.length-1].snap:null;
+  S.dd.current=JSON.parse(JSON.stringify(d));if(snap!==prev){S.dd.saves.push({week:S.week,snap});addLog((prev?'Revised':'Built')+' the driver diagram: '+ddSummary(d)+'.');}
+  S.ddDraft=null;closeModal();S.lastAct=Date.now();render();}
+function planTab(){const m=S.map,dd=S.dd;
+  const frame=S.rollout==='accepted'?'<div class="item warnitem"><h4>Project framing</h4><p>Your project is framed as the CareAlert rollout: the goal is a go-live date. Want to reframe it around the aim of fewer ED returns?</p><div class="acts"><button class="btn sm" onclick="reframeLate()"'+(S.ap<2?' disabled':'')+'>Reframe around the aim · 2 coins</button></div></div>':'';
+  const chItem='<div class="item"><h4>Charter check</h4><p>Three draft project charters need labelling: QI, implementation or research? Free, one try.</p>'+(S.charter?'<div class="status"><span class="'+(S.charter.correct===3?'ok':'no')+'">'+S.charter.correct+' of 3 correct</span></div>':'')+'<div class="acts"><button class="btn '+(S.charter?'ghost ':'')+'sm" onclick="openCharter()">'+(S.charter?'View results':'Review charters')+'</button></div></div>';
+  const hidden=m?m.rev.filter(r=>!r).length:0;
+  const mapItem='<div class="item"><h4>Process map</h4><p>Walk the resident\'s journey from LTC to the ED and back to find where avoidable returns come from. Who walks it with you affects what you see.</p>'+(m?'<div class="status">'+(hidden?'<span style="color:var(--warn)">Walked in week '+m.week+': '+hidden+' step'+(hidden>1?'s':'')+' unclear</span>':'<span class="ok">Walked in week '+m.week+': all steps clear</span>')+'</div>':'')+'<div class="acts">'+(m?'<button class="btn ghost sm" onclick="openMap()">View map</button>':'')+'<button class="btn sm" onclick="act(\'walk\')"'+(S.ap<1?' disabled':'')+'>'+(m?'Walk it again':'Walk the process')+' · 1 action</button></div></div>';
+  const ddItem='<div class="item"><h4>Driver diagram</h4><p>Your theory of change: what drives ED returns, and which change ideas act on which driver. Building and revising it is free.</p><div class="status">'+(dd.saves.length?'<span class="ok">'+ddSummary(dd.current)+'</span>':'<span class="muted">Not built yet</span>')+'</div><div class="acts"><button class="btn sm" onclick="openDD()">'+(dd.saves.length?'Open and revise':'Build driver diagram')+'</button></div></div>';
+  return frame+'<p class="muted" style="font-size:13px;margin-top:0">Understand the problem and build your theory before you change things.</p>'+mapItem+ddItem+chItem;}
+function ddScore(){const c=S.dd.current;let real=0,dis=0;c.drivers.forEach(id=>DRV[id].real?real++:dis++);
+  let links=0;['acp','virtual','ewt','iv','handover','pharm'].forEach(id=>{if(c.links[id]&&c.links[id]===REF_LINK[id])links++;});
+  const noneOk=['poster','mandate'].filter(id=>c.links[id]==='none').length;
+  const s=S.dd.saves,revised=s.length>1&&s.some(x=>x.week>s[0].week);
+  return {pts:S.dd.saves.length?Math.max(0,Math.min(40,real*4-dis*4+links*2+noneOk*3+(revised?6:0))):0,real,dis,links,noneOk,revised};}
+function act(name,arg){if(busy())return;sfx('click');ACT[name](arg);checkBadges(false);render();afterAction();}
+function setTab(t){if(!S||S.anim)return;S.tab=t;S.tabsSeen[t]=true;S.lastAct=Date.now();render();}
+function tabCount(t){const ap=S.ap;
+  if(t==='plan')return (ap>=1?1:0)+(S.dd.saves.length?0:1)+(S.charter?0:1)+(S.rollout==='accepted'&&ap>=2?1:0);
+  if(t==='measure')return [['outcome',1],['baseline',2],['process',1],['balancing',1]].filter(([k,c])=>!S.m[k]&&ap>=c&&(k!=='baseline'||S.m.outcome)).length;
+  if(t==='engage')return ap>=1?Object.keys(STAKE).filter(k=>!S.engaged[k]).length:0;
+  return ap>=1?CHANGES.filter(c=>!S.ch[c.id].pending&&!S.ch[c.id].active).length:0;}
+
+/* ---------- PDSA ---------- */
+function openTest(id){if(busy())return;const c=CH[id],st=S.ch[id];if(st.pending||st.active)return;if(S.ap<1){toast('No actions left this week. End the week to continue.');return;}
+  showModal('<div class="ev-tag">Plan · Do · Study · Act</div><h3>Test: '+c.name+'</h3><p>You\'ll test it at one site (<b>'+S.rolls[id].site+'</b>) for one week. Costs 1 action; results arrive next week.</p><p><b>Plan includes a prediction.</b> What do you expect to happen to ED returns at the test site?</p><div class="opts"><button onclick="startTest(\''+id+'\',\'reduce\')">Returns will go down</button><button onclick="startTest(\''+id+'\',\'none\')">No clear change</button><button onclick="startTest(\''+id+'\',\'unsure\')">Not sure, let\'s just try it</button></div><button class="link" onclick="closeModal()">Cancel</button>');}
+function startTest(id,pred){closeModal();if(!spend(1))return;const st=S.ch[id];st.pending={pred,week:S.week};
+  addLog('Started PDSA cycle '+(st.cycles+1)+': '+CH[id].name+' at '+S.rolls[id].site+'. Prediction: '+({reduce:'returns will go down',none:'no clear change',unsure:'none made'})[pred]+'.');render();afterAction();}
+function resolvePDSA(id){
+  const c=CH[id],st=S.ch[id],pred=st.pending.pred;st.pending=null;st.tested=true;st.cycles++;
+  const ok=!c.needs||S.engaged[c.needs];const eff=c.effect*(ok?1:(c.hardNeed?0:0.3));const r=S.rolls[id].pdsa,cyc=st.cycles;
+  let cls;
+  if(id==='mandate')cls='works';
+  else if(eff>=0.12)cls=(r<0.1&&cyc===1)?'mixed':'works';
+  else if(eff>=0.08)cls=(r<0.35&&cyc===1)?'mixed':'works';
+  else if(eff>=0.04)cls='mixed';
+  else cls='none';
+  const site=S.rolls[id].site,pre=5,den=23;
+  const post=(c.hardNeed&&!ok)?pre:Math.max(1,Math.round(pre*(1-eff*3.5)));
+  let note;
+  if(c.hardNeed&&!ok)note='The test never really started: no pharmacy protocol or IV supplies at '+site+'. Engage '+STAKE[c.needs].name+' and test again.';
+  else if(!ok)note='Uptake was low. '+STAKE[c.needs].name+' weren\'t involved in designing it, and few people used it. Engage them and run another cycle.';
+  else if(id==='poster')note='Staff remembered the posters, but nothing in their day-to-day workflow changed.';
+  else if(id==='mandate')note='Transfers dropped fast. One nurse mentioned a resident with chest pain waited over two hours for approval.'+(S.m.balancing?' Your balancing measure flagged 2 delayed escalations at the test site.':'');
+  else if(cls==='works')note='Staff found it workable and suggested small tweaks for the next cycle.';
+  else note='Some movement, but not clear-cut. Adapt the change and run another cycle.';
+  const text='Cycle '+cyc+' at '+site+': '+pre+' of '+den+' residents returned to the ED in the comparison week vs '+post+' of '+den+' during the test. '+note;
+  st.results.push({cls,text,pred});
+  S.pdsa.count++;let correct=false;
+  if(pred!=='unsure'){S.pdsa.pred++;correct=(pred==='reduce'&&cls==='works')||(pred==='none'&&cls==='none');if(correct)S.pdsa.correct++;}
+  const label={works:'returns went down',mixed:'mixed result',none:'no clear change'}[cls];
+  addLog('PDSA result, '+c.name+': '+label+'. '+(pred==='unsure'?'You hadn\'t made a prediction.':correct?'Your prediction was right.':cls==='mixed'?'Mixed results are common; adapt and re-test.':'Your prediction was off, and that gap is the learning.'),cls==='works'?'good':cls==='none'?'bad':'warn');
+  if(pred==='unsure')fbAdd('PDSA',false,'Ran a PDSA without a firm prediction. Comparing what you predicted with what happened is where PDSA learning comes from.');
+  else fbAdd('PDSA',true,'Made an explicit prediction before PDSA tests.');
+  if(cls!=='works'&&c.needs&&!ok)fbAdd('PDSA',true,'Used a PDSA to discover a missing precondition ('+STAKE[c.needs].name+') before spreading.');
+}
+
+/* ---------- events ---------- */
+const EV={
+  intro:{title:'Welcome to Riverbend',body:()=>(S.coach?'<p>I\'m Dr. Rowan, your QI coach. I\'ll point you in the right direction along the way.</p>':'')+howToWin()+'<p>You\'re the physician lead for a QI project across <b>8 long-term care facilities</b>. About <b>22%</b> of residents discharged from the ED back to their facility return to the ED within 30 days.</p><p class="aim"><b>Aim:</b> reduce 30-day ED returns among LTC residents from 22% to 15% within 16 weeks.</p><ul><li><b>3 actions per week</b> for 16 weeks.</li><li>Map the process, build a driver diagram, set up measures, engage stakeholders, test change ideas with PDSA, and spread what works.</li><li>Decisions will pop up. Several test whether you can tell QI from research, or signal from noise.</li></ul><p class="muted">Simulated scenario. Facilities and data are fictional.</p>',options:[{label:'Start week 1'}]},
+  rct:{title:'"Shouldn\'t this be a proper trial?"',scored:true,obj:'Is it QI?',body:()=>'<p>A colleague says: "We should randomize facilities into intervention and control groups and not change anything until we have statistically significant results. Otherwise how will we know it worked?"</p>',options:[
+    {label:'Agree. Design a randomized trial and pause spreading changes until results are in.',correct:false,apply(){S.freezeUntil=S.week+4;},fb:'This turns your QI project into research. Spreading is paused for 4 weeks. QI aims to improve care in your system now, using rapid tests and SPC charts to judge change over time, not to produce generalizable evidence with fixed protocols and control groups.'},
+    {label:'Explain the difference: QI uses rapid PDSA cycles and SPC charts to learn what works here. It isn\'t designed to produce generalizable evidence.',correct:true,apply(){S.goodwill=clamp(S.goodwill+3);},fb:'Right. QI asks "is care improving in our system?" and judges it with run and control charts over time. Research asks "is this generalizably true?" and needs a fixed protocol, controls and ethics review.'},
+    {label:'Do both. Run a trial alongside the QI project.',correct:false,apply(){S.ap=Math.max(0,S.ap-2);S.goodwill=clamp(S.goodwill-4);},fb:'Running both doubles the workload (−2 actions this week) without serving the aim. If a genuine research question emerges, it belongs in a separate, ethics-reviewed study.'}]},
+  reb:{title:'Does this need ethics review?',scored:true,obj:'Is it QI?',body:()=>'<p>A facility director asks: "Does this project need Research Ethics Board approval before you go any further?"</p>',options:[
+    {label:'Submit a full REB application and pause the project for about a month.',correct:false,apply(){S.freezeUntil=Math.max(S.freezeUntil,S.week+3);S.goodwill=clamp(S.goodwill-4);},fb:'Overkill for a project that is QI. Spreading is paused for 3 weeks. Most organizations have a QI-vs-research screening step that answers this quickly.'},
+    {label:'Complete the organization\'s QI-vs-research screening and privacy check, and proceed as QI if it screens as QI (1 action).',correct:true,apply(){S.ap=Math.max(0,S.ap-1);},fb:'Right. Screening documents that the project is QI (local improvement, evidence-based changes, minimal added risk) and that data use is appropriate. QI still has ethical obligations; it just goes through a different pathway.'},
+    {label:'No review needed. QI is exempt from ethics considerations.',correct:false,apply(){S.goodwill=clamp(S.goodwill-3);},fb:'QI isn\'t exempt from ethics. It still needs screening, privacy protection and attention to risk. It usually just doesn\'t need full REB review.'}]},
+  spike:{title:'"What happened last week?"',scored:true,obj:'Variation',body:()=>{const o=S.obs[S.obs.length-1];return '<p>The regional director emails: "ED returns jumped to <b>'+pct(o.p)+'</b> last week. What are you doing about it?"</p>'+(S.m.outcome?'<p class="muted">Check your outcome chart before you answer.</p>':'<p class="muted">You have no outcome chart, so all you have is the director\'s number and staff saying it\'s been a rough week.</p>');},options:[
+    {label:'Treat it as a possible special cause. Check the chart and investigate what was different last week.',correct:true,apply(){S.goodwill=clamp(S.goodwill+3);},fb:'Right. The point sits far above the usual range, which signals a special cause. You found it: an influenza outbreak at two facilities. You supported outbreak protocols and kept the QI plan on track.'},
+    {label:'Overhaul the plan. Stop what you\'re doing and start fresh.',correct:false,apply(){CHANGES.forEach(c=>{const st=S.ch[c.id];if(st.active)st.adoption*=0.5;});S.goodwill=clamp(S.goodwill-8);},fb:'That\'s tampering. The spike had a specific cause (an influenza outbreak) unrelated to your changes. Overhauling the plan halved adoption of every active change and frustrated staff.'},
+    {label:'Ignore it. The numbers always bounce around.',correct:false,apply(){},fb:'Usually a fair instinct, but not this time. The point was outside the control limits, a special cause (an influenza outbreak). Special causes deserve investigation; common-cause noise doesn\'t.'}]},
+  common:{title:'"The number went up again."',scored:true,obj:'Variation',body:()=>{const n=S.obs.length,a=S.obs[n-1],b=S.obs[n-2];return '<p>The regional director emails: "Returns went from '+pct(b.p)+' to <b>'+pct(a.p)+'</b> last week. Is the project failing?"</p>'+(S.m.outcome?'<p class="muted">Check your outcome chart before you answer.</p>':'<p class="muted">Without an outcome chart you have no way to put this number in context.</p>');},options:[
+    {label:'Hold an emergency meeting and change the process this week.',correct:false,apply(){S.goodwill=clamp(S.goodwill-6);},fb:'That\'s tampering. The point is inside the control limits: ordinary week-to-week variation. Reacting to noise adds disruption and, over time, makes performance worse.'},
+    {label:'Check the chart. If no special-cause rule is triggered, explain common-cause variation and stay the course.',correct:true,apply(){S.goodwill=clamp(S.goodwill+2);},fb:'Right. One higher week inside the limits is common-cause variation. Judge change by patterns (shifts, trends, points outside the limits), not by comparing one week with the last.'},
+    {label:'Stop the change you most recently spread.',correct:false,apply(){let last=null,lw=-1;CHANGES.forEach(c=>{const st=S.ch[c.id];if(st.active&&st.spreadWeek>lw){lw=st.spreadWeek;last=c.id;}});if(last){S.ch[last].active=false;S.ch[last].adoption=0;return 'You stopped "'+CH[last].name+'".';}return '';},fb:'Abandoning a change because of one week inside the limits throws away progress on the strength of noise.'}]},
+  staff:{title:'Staffing crunch',body:()=>'<p>Two facilities are short-staffed this week because of illness and vacancies. Frontline staff are stretched thin.</p>',options:[
+    {label:'Protect the team: a lighter week (2 actions).',apply(){S.lf.protect=true;S.ap=Math.min(S.ap,2);S.goodwill=clamp(S.goodwill+4);},fb:'Staff noticed and appreciated it. Improvement work that ignores frontline capacity burns goodwill fast.'},
+    {label:'Push on at full speed (keep 3 actions).',apply(){S.lf.protect=false;S.goodwill=clamp(S.goodwill-8);},fb:'You kept your actions, but goodwill took a hit. Low goodwill slows adoption of every change.'}]},
+  drug:{title:'A new idea from a colleague',scored:true,obj:'Is it QI?',body:()=>'<p>A geriatrician proposes: "Let\'s add an off-label medication protocol that isn\'t standard of care yet. We\'d try it at two facilities, compare them with the other six, and publish the results."</p>',options:[
+    {label:'Add it to the project as another PDSA cycle.',correct:false,apply(){S.goodwill=clamp(S.goodwill-5);},fb:'This one crosses the line. Testing an intervention that isn\'t established practice, with comparison groups and an aim to generalize, is research. It needs REB review and informed consent. PDSA is for implementing evidence-based practice locally.'},
+    {label:'Recognize it as research. Route it to the REB as a separate study and keep the QI project on evidence-based changes.',correct:true,apply(){S.goodwill=clamp(S.goodwill+2);},fb:'Right. A novel or experimental intervention, comparison groups and intent to generalize are classic signs of research. QI and research can coexist, but they follow different pathways.'},
+    {label:'Decline. It\'s outside the project scope.',correct:false,apply(){},fb:'Protecting scope is reasonable, but the key point is why: an experimental intervention with comparison groups is research and needs REB review. It could go forward as a separate study.'}]},
+  champ:{title:'Your champion is leaving',body:()=>'<p>The nurse champion at Riverside Manor is moving to a new role next week. '+(S.engaged.nursing?'She has been key to keeping LTC nursing staff engaged.':'She was one of the few people pushing for change.')+'</p>',options:[
+    {label:'Ask her to mentor a successor before she leaves (1 action).',apply(){S.lf.succession=true;S.ap=Math.max(0,S.ap-1);S.goodwill=clamp(S.goodwill+3);},fb:'Good sustainability thinking. Succession planning keeps a change from depending on one person.'},
+    {label:'Thank her and carry on.',apply(){S.lf.succession=false;if(S.engaged.nursing&&S.goodwill<60){S.engaged.nursing=false;addLog('LTC nursing engagement lapsed after the champion left. Re-engage them to restore adoption.','bad');return 'With team goodwill below 60, LTC nursing engagement lapsed. Changes that depend on nurses will slow until you re-engage them.';}return S.engaged.nursing?'Team goodwill was high enough to absorb the loss.':'Little changes for now, but you lost a potential ally.';},fb:''}]},
+  pub:{title:'Invitation to publish',scored:true,obj:'Is it QI?',body:()=>'<p>A journal editor has heard about your project and invites a submission.</p>',options:[
+    {label:'Relabel the project as research after the fact.',correct:false,apply(){},fb:'You can\'t retroactively convert QI into research. Research needs prospective ethics review, and consent where required.'},
+    {label:'Write it up as a QI report (for example, using SQUIRE guidelines) and check with the ethics office about any publication requirements.',correct:true,apply(){S.goodwill=clamp(S.goodwill+3);},fb:'Right. Intending to publish doesn\'t by itself make a project research. QI work is published regularly using reporting guidelines like SQUIRE; journals may ask for a QI determination letter.'},
+    {label:'Restart with a fixed protocol and a control group so it counts as "real" evidence.',correct:false,apply(){S.freezeUntil=Math.max(S.freezeUntil,S.week+2);S.goodwill=clamp(S.goodwill-5);},fb:'That throws away the improvement work. QI evidence (SPC charts, PDSA learning) is legitimate for its purpose.'}]},
+  harmWarn:{title:'Balancing measure alert',body:()=>'<p>Your balancing measure shows <b>'+S.harmAccum+'</b> delayed or missed escalations since mandatory physician approval started: residents deteriorating while they wait for sign-off.</p><p>Meanwhile, the outcome chart looks great. What do you do?</p>',options:[
+    {label:'Stop the mandatory approval policy now and review the cases.',apply(){S.ch.mandate.active=false;S.ch.mandate.adoption=0;fbAdd('Measures',true,'Your balancing measure caught harm from a change that looked like a success on the outcome chart.');fbAdd('Change ideas',true,'Stopped a harmful change as soon as the balancing measure flagged it.');},fb:'Right call. Fewer ED returns achieved by delaying needed care isn\'t improvement. This is exactly what balancing measures are for.'},
+    {label:'Keep it. The outcome numbers are great.',apply(){fbAdd('Change ideas',false,'Kept a change after the balancing measure showed it was causing harm.');},fb:'The numbers look better because residents who need the ED are being delayed. The harm keeps accumulating.'}]},
+  incident:{title:'Critical incident',body:()=>'<p>A resident at '+S.rolls.mandate.site+' deteriorated while waiting for transfer approval and was admitted to ICU. A patient safety review links it to the mandatory approval policy.</p>'+(S.m.balancing?'':'<p>You had no balancing measure, so the earlier delayed escalations were invisible to you.</p>'),options:[
+    {label:'Stop the policy and support the safety review.',apply(){S.ch.mandate.active=false;S.ch.mandate.adoption=0;S.goodwill=clamp(S.goodwill-25);S.penalty+=150;S.penLog.push({w:Math.min(TOTAL_WEEKS,S.week-1),pts:150,why:'Critical incident: a resident deteriorated while waiting for transfer sign-off under the mandatory approval policy.'});fbAdd('Change ideas',false,'Spread a change that reduced returns by delaying needed care, leading to a critical incident.');fbAdd('Change ideas',true,'Stopped the mandatory approval policy as soon as the incident was reported.');if(!S.m.balancing)fbAdd('Measures',false,'No balancing measure, so the harm was invisible until it became a critical incident.');},fb:'Stopping the policy now is the right call, and it\'s credited in your debrief. The 150-point safety penalty and −25 goodwill are for harm residents already experienced, which nothing you do now can undo. The lesson: watch every outcome improvement with a balancing measure, and act on early warning signs.'}]}
+};
+
+/* ---------- QI vs implementation ---------- */
+function leadScore(){const L=[],add=(dom,pts,max,ok,good,bad)=>L.push({dom,pts:ok?pts:0,max:pts,ok,txt:ok?good:bad});
+  const dds=ddScore(),fullMap=S.maps.some(m=>m.rev.every(Boolean)),gw=S.goodwill;
+  add('Lead self',10,0,dds.revised,'Revised your driver diagram as you learned.','Never revised your driver diagram: leaders update their theory when the data says so.');
+  add('Lead self',10,0,S.judg.headline===true,'Reported honestly to the board.','The board headline didn\'t report the outcome honestly against the aim.');
+  add('Lead self',5,0,S.pdsa.pred>=2,'Committed to predictions before your tests.','Rarely made predictions before testing: leaders state what they expect, then learn from the gap.');
+  add('Engage others',10,0,fullMap,'Walked the process with frontline staff.','Didn\'t walk the full process with frontline staff.');
+  add('Engage others',5,0,S.lf.protect!==false,'Protected frontline capacity during the staffing crunch.','Pushed the team at full speed through a staffing crunch.');
+  add('Engage others',10,0,gw>=60,'Finished with team morale strong ('+gw+').','Team morale ended at '+gw+': engagement wore thin along the way.');
+  if(gw>=45&&gw<60)L[L.length-1].pts=5;
+  add('Achieve results',7,0,S.judg.spike===true,'Acted on a real signal (the outbreak spike).','Mishandled a real special-cause signal.');
+  add('Achieve results',6,0,S.judg.common!==false,'Held steady through ordinary noise.','Reacted to noise as if it were a signal.');
+  add('Achieve results',6,0,S.m.outcome&&S.m.baseline,'Based decisions on an outcome measure with a baseline.','Made decisions without an outcome measure and baseline.');
+  add('Achieve results',6,0,!!(S.result&&S.result.shift),'Delivered a sustained, measurable shift.','No sustained shift showed on your chart.');
+  const ne=Object.keys(STAKE).filter(k=>S.lf.eng[k]).length;
+  add('Develop coalitions',16,0,ne>0,'Engaged '+ne+' of 4 stakeholder groups.','Didn\'t engage any stakeholder groups.');
+  L[L.length-1].pts=ne*4;L[L.length-1].ok=ne===4;if(ne&&ne<4)L[L.length-1].txt='Engaged '+ne+' of 4 stakeholder groups: '+Object.keys(STAKE).filter(k=>!S.lf.eng[k]).map(k=>STAKE[k].name).join(', ')+' left out.';
+  add('Develop coalitions',9,0,S.rollout==='reframed'||S.rollout==='reframedLate','Reframed the CareAlert rollout while keeping leadership on side'+(S.rollout==='reframedLate'?' (late, after owning the misstep)':'')+'.',S.rollout==='refused'?'Refused the sponsor\'s app outright instead of bringing them along.':'Let a sponsor\'s rollout stand in for the project aim.');
+  if(S.rollout==='reframedLate')L[L.length-1].pts=5;
+  add('Systems transformation',10,0,S.lf.succession!==false,'Planned succession so change didn\'t depend on one person.','Let your champion leave without a successor.');
+  const sp=CHANGES.filter(c=>S.ch[c.id].everActive);
+  add('Systems transformation',10,0,sp.length>0&&!sp.some(c=>S.ch[c.id].spreadUntested),'Spread only what you had tested.',sp.length?'Spread changes system-wide before testing them.':'Didn\'t spread any change across the system.');
+  add('Systems transformation',5,0,S.m.balancing,'Watched system-wide effects with a balancing measure.','No balancing measure to watch for knock-on effects.');
+  const doms=['Lead self','Engage others','Achieve results','Develop coalitions','Systems transformation'].map(d=>{const it=L.filter(x=>x.dom===d);return {d,pts:it.reduce((a,x)=>a+x.pts,0),max:it.reduce((a,x)=>a+x.max,0),items:it};});
+  return {total:doms.reduce((a,x)=>a+x.pts,0),doms};}
+function leadCard(){const r=S.result.lead;return '<div class="card"><div class="card-h"><h2>Leadership · LEADS domains</h2><span class="chip">'+r.total+' / 125</span></div><div class="leads">'+r.doms.map(d=>'<div class="ld"><div class="ld-h"><b>'+d.d+'</b><span>'+d.pts+' / '+d.max+'</span></div><div class="bar"><i style="width:'+Math.round(d.pts/d.max*100)+'%;background:var(--teal)"></i></div><ul>'+d.items.map(x=>'<li class="'+(x.pts===x.max?'g':x.pts>0?'p':'b')+'">'+x.txt+'</li>').join('')+'</ul></div>').join('')+'</div><p class="muted" style="font-size:12.5px;margin:10px 0 0">LEADS: Lead self · Engage others · Achieve results · Develop coalitions · Systems transformation.</p></div>';}
+function howToWin(){return '<div class="howwin"><div class="hw-aim"><b>Your aim</b>Cut 30-day ED returns from long-term care from <b>22% to 15%</b> in 16 weeks.</div><div class="hw-grid"><div><b>400</b><span>Outcome</span><em>How far returns fall</em></div><div><b>275</b><span>Evidence</span><em>Measures, planning tools, PDSA predictions, a real signal on your chart</em></div><div><b>200</b><span>QI judgment</span><em>The calls you make when characters bring you decisions</em></div><div><b>125</b><span>Leadership</span><em>How you lead people and change (LEADS)</em></div></div></div>';}
+function recentP(){const l=S.obs.slice(-4);return l.reduce((a,o)=>a+o.x,0)/Math.max(1,l.reduce((a,o)=>a+o.n,0));}
+function forceRollout(){const st=S.ch.ewt;S.ap=Math.max(0,S.ap-2);st.active=true;st.everActive=true;st.spreadWeek=S.week;st.adoption=0;
+  if(!(S.m.outcome&&S.m.baseline))S.spreadBeforeMeasure=true;
+  if(!st.tested){st.spreadUntested=true;if(S.rolls.ewt.spread<0.45){st.stalled=true;S.goodwill=clamp(S.goodwill-8);}fbAdd('PDSA',false,'CareAlert went live at all 8 homes on a schedule, not on evidence. It was never tested first.');}
+  addLog('Go-live: CareAlert (the early warning tool) switched on at all 8 homes on leadership\'s schedule'+(st.tested?'':', untested')+'. It used 2 of this week\'s coins.','warn');}
+Object.assign(EV,{
+  rollout:{title:'"Your project is ready to go!"',scored:true,obj:'Is it QI?',body:()=>'<p>"Good news: leadership has already bought <b>CareAlert</b>, an early-warning app for LTC staff. Your QI project is to get all 8 homes live on it by week 8. The go-live schedule is attached."</p><p class="muted">How do you frame your project?</p>',options:[
+    {label:'Accept it. The CareAlert rollout is the QI project, and all 8 homes live by week 8 is the goal.',correct:false,apply(){S.rollout='accepted';S.rolloutEver=true;},fb:'This is an implementation project wearing a QI label. The solution was picked before anyone understood the problem, the "aim" is a go-live date, and success means "installed", not "fewer residents back in the ED". Expect a go-live tracker where your aim should be, and the app switched on everywhere in week 5 whether or not it has been tested.'},
+    {label:'Reframe it. Keep the aim on 30-day ED returns and treat CareAlert as one change idea to test with PDSA before any go-live date is set (1 coin).',correct:true,apply(){S.rollout='reframed';S.ap=Math.max(0,S.ap-1);S.goodwill=clamp(S.goodwill-3);addLog('Reframed the CareAlert rollout: the aim stays on ED returns, and CareAlert (the early warning tool) becomes a change idea to test.','good');},fb:'Right. QI starts from a problem and a measurable aim, not a pre-chosen solution. CareAlert may well help, and testing it small will show how much and what it needs to work. Leadership agrees to set a go-live date after your first tests.'},
+    {label:'Refuse the app. Tell leadership the QI project will choose its own solutions.',correct:false,apply(){S.rollout='refused';S.goodwill=clamp(S.goodwill-12);},fb:'You protected the aim, but burned goodwill with leadership (−12). You don\'t have to reject a proposed solution, you need to test it. A purchased tool can be a perfectly good change idea.'}]},
+  golive:{title:'Go-live week!',body:()=>'<p>"It\'s week 5: CareAlert switches on at all 8 homes today, right on schedule. Training sign-offs are complete."</p>'+(S.ch.ewt.tested?'':'<p class="muted">Nobody has tested it at a single home yet.</p>'),options:[
+    {label:'Go live ➜',apply(){forceRollout();return '';},fb:'CareAlert is switched on at all 8 homes and your go-live tracker reads 100%. Now watch what your outcome chart says.'}]},
+  justdo:{title:'"Small thing, but…"',scored:true,obj:'Is it QI?',body:()=>'<p>"The ED\'s discharge summaries for Elm Court and Sunnyside are being faxed to a number that was disconnected last year. They\'re piling up somewhere nobody reads."</p>',options:[
+    {label:'Fix it now. Update the fax numbers in the ED system and confirm with both homes.',correct:true,apply(){S.goodwill=clamp(S.goodwill+3);const h=S.ch.handover;if(h.active)h.adoption=Math.min(capFor('handover'),h.adoption+0.1);},fb:'Right. When the problem is clear and the fix is obvious, low-risk and easy to reverse, just do it. Not everything needs a PDSA cycle; save testing for changes where you\'re genuinely uncertain.'},
+    {label:'Run a PDSA cycle on the new fax number at one home first (1 coin).',correct:false,apply(){S.ap=Math.max(0,S.ap-1);},fb:'Over-engineered. There\'s nothing to learn from testing a correct fax number. PDSA is for changes with real uncertainty; known, simple, low-risk fixes are "just do it" changes.'},
+    {label:'Add it to the change-idea list to prioritize with the others.',correct:false,apply(){S.goodwill=clamp(S.goodwill-3);},fb:'Meanwhile, discharge information keeps vanishing. A known, simple, low-risk fix doesn\'t need to wait in a queue: just do it.'}]},
+  headline:{title:'The headline for the board',scored:true,obj:'Is it QI?',body:()=>'<p>"The board wants one line for your project in the final report. What should it say?"</p>',
+    get options(){const b=S.m.outcome?{label:'"ED returns went from '+pct(S.baseMean)+' to '+pct(recentP())+' (last 4 weeks). Here\'s what we tested, what worked, and what we learned."',correct:true,fb:'Right. A QI headline reports the outcome against the aim, honestly, plus what was learned. Your SPC chart is the evidence behind it.'}
+      :{label:'"We can\'t say whether ED returns changed: we never measured them. Here\'s what we did and what we\'d do differently."',correct:true,fb:'Honest, and that matters. Admitting you can\'t show a result beats claiming one. But a QI project without an outcome measure can\'t demonstrate improvement: next time, measure from week 1.'};
+      return [{label:S.rolloutEver?'"All 8 homes live on CareAlert, on time and on budget."':'"All planned changes rolled out across 8 homes on schedule."',correct:false,fb:'That reports implementation, not improvement. "Live on time" tells the board the project happened, not whether residents return to the ED less. In QI, the headline is the outcome against the aim.'},
+        b,{label:'"An outstanding team effort: 16 weeks of hard work across 8 homes."',correct:false,fb:'Effort isn\'t a result. The board needs to know whether residents are better off, and the honest answer comes from your outcome measure.'}];}}
+});
+const CHARTERS=[
+  {id:'c1',title:'CareAlert QI Project',text:'<b>Aim:</b> 100% of the 8 homes using CareAlert by June 30.<br><b>Measures:</b> % of staff trained; go-live dates met; app log-ins per week.<br><b>Plan:</b> follow the vendor\'s rollout schedule, home by home.',ans:'impl',why:'Labelled QI, but it\'s implementation: the solution is fixed in advance, the aim is a go-live date, and every measure tracks installation, not resident outcomes. Nothing gets tested or adapted.'},
+  {id:'c2',title:'IV Hydration Study',text:'<b>Question:</b> does a new IV hydration protocol reduce ED transfers compared with usual care?<br><b>Design:</b> homes randomized to protocol or control; resident consent; protocol fixed for 12 months.<br><b>Plan:</b> publish results for other health systems.',ans:'res',why:'Research: a hypothesis, a randomized comparison, a fixed protocol and intent to generalize. It needs Research Ethics Board review.'},
+  {id:'c3',title:'Fewer Returns Project',text:'<b>Aim:</b> reduce 30-day ED returns among LTC residents from 22% to 15% in 16 weeks.<br><b>Measures:</b> 30-day return rate (outcome); % of residents with a goals-of-care conversation (process); delayed escalations (balancing).<br><b>Plan:</b> test change ideas with PDSA cycles, spread what works, drop what doesn\'t.',ans:'qi',why:'QI: a measurable aim about outcomes, a family of measures and iterative testing. The solutions are open, and the data decides.'}];
+const CH_LBL={qi:'QI project',impl:'Implementation project',res:'Research study'};
+function openCharter(){if(busy())return;sfx('click');
+  if(S.charter){showModal('<div class="ev-tag">Charter check · results</div><h3>'+S.charter.correct+' of 3 correct</h3>'+CHARTERS.map(c=>{const a=S.charter.answers[c.id];return '<div class="charter"><div class="ch-h"><b>"'+c.title+'"</b>'+(a===c.ans?'<span class="ok">✓ '+CH_LBL[a]+'</span>':'<span class="no">✗ You said '+CH_LBL[a].toLowerCase()+'; it\'s an '+CH_LBL[c.ans].toLowerCase()+'</span>')+'</div><div class="ch-t">'+c.text+'</div><p class="ch-why">'+c.why+'</p></div>';}).join('')+'<button class="btn" onclick="closeModal()">Close</button>',true);return;}
+  S.chDraft=S.chDraft||{};
+  showModal('<div class="ev-tag">Charter check</div><h3>Three draft charters land on your desk</h3><p class="muted" style="font-size:13.5px">Label each one. Watch out: a project\'s title doesn\'t tell you what kind of project it really is. Free, one try.</p>'+CHARTERS.map(c=>'<div class="charter"><div class="ch-h"><b>"'+c.title+'"</b></div><div class="ch-t">'+c.text+'</div><div class="ch-pick">'+Object.keys(CH_LBL).map(k=>'<label><input type="radio" name="'+c.id+'" value="'+k+'"'+(S.chDraft[c.id]===k?' checked':'')+' onchange="S.chDraft[\''+c.id+'\']=this.value"> '+CH_LBL[k]+'</label>').join('')+'</div></div>').join('')+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><button class="btn" onclick="submitCharter()">Submit labels</button><button class="btn ghost" onclick="closeModal()">Later</button></div>',true);}
+function submitCharter(){const d=S.chDraft||{};if(CHARTERS.some(c=>!d[c.id])){toast('Label all three charters first.');return;}
+  const correct=CHARTERS.filter(c=>d[c.id]===c.ans).length;S.charter={answers:Object.assign({},d),correct,week:S.week};
+  fbAdd('Is it QI?',correct===3,correct===3?'Charter check: labelled all three charters correctly, including the rollout dressed up as a "QI Project".':'Charter check: '+correct+' of 3 correct. The "CareAlert QI Project" is the classic trap: a QI title on an implementation plan.');
+  addLog('Charter check: '+correct+' of 3 labelled correctly.',correct===3?'good':'warn');sfx(correct===3?'good':'bad');checkBadges(false);closeModal();render();openCharter();}
+function reframeLate(){if(busy()||S.rollout!=='accepted')return;if(!spend(2))return;sfx('click');S.rollout='reframedLate';
+  addLog('Reframed the project mid-stream: the aim is back on ED returns, and CareAlert is just one change idea.','good');
+  fbAdd('Is it QI?',true,'Recognized mid-project that a rollout isn\'t QI, and reframed around the outcome aim.');render();afterAction();}
+function runQueue(){if(curEv)return;const e=S.queue.shift();
+  if(!e){if(S.week>TOTAL_WEEKS&&!S.over)finish();return;}
+  curEv=e.id;const ev=EV[e.id];
+  const tag=e.id==='intro'?'Week 1':ev.obj==='Variation'?'Variation decision':ev.obj==='Is it QI?'?'Is it QI? decision':(e.id==='harmWarn'||e.id==='incident')?'Safety':'Event';
+  const who=CAST[e.id==='intro'?(S.coach?'rowan':'hale'):(SPEAKER[e.id]||'hale')];
+  showModal('<div class="ev-tag">'+tag+'</div><div class="vn"><div class="vn-face">'+pixelFace(who.face,96,who.name)+'</div><div class="vn-body"><div class="vn-name">'+who.name+'<span>'+who.role+'</span></div><h3>'+ev.title+'</h3></div></div><div class="vn-text">'+ev.body()+'</div><div class="opts">'+optOrder(e.id,ev.options.length).map((i,k)=>'<button onclick="chooseOpt('+i+')"><span class="opt-k">'+String.fromCharCode(65+k)+'</span>'+ev.options[i].label+'</button>').join('')+'</div>');}
+function optOrder(id,n){const r=mulberry32(xmur3(S.seed+'|opt|'+id)());const a=[...Array(n).keys()];for(let i=n-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function chooseOpt(i){const id=curEv,ev=EV[id],o=ev.options[i];
+  if(id==='intro'){closeModal();curEv=null;S.pendingTour=true;render();runQueue();if(!curEv){S.pendingTour=false;startTour();}S.lastAct=Date.now();return;}
+  const extra=o.apply?o.apply():'';const text=((typeof o.fb==='function'?o.fb():o.fb)||'')+(extra?' '+extra:'');
+  const plainTitle=ev.title.replace(/["“”]/g,'');
+  if(ev.scored){S.judg[id]=!!o.correct;fbAdd(ev.obj,!!o.correct,plainTitle+': '+text);}
+  addLog(plainTitle+': '+o.label,ev.scored?(o.correct?'good':'bad'):'');
+  if(ev.scored)sfx(o.correct?'good':'bad');checkBadges(false);
+  const head='<h3 style="margin:0">'+(ev.scored?(o.correct?'<span class="ok">✓ Good call</span>':'<span class="no">✗ Rethink this</span>'):esc(plainTitle))+'</h3>';
+  showModal(S.coach?'<div class="vn"><div class="vn-face">'+rowanSVG(72)+'</div><div class="vn-body"><div class="vn-name">Dr. Rowan<span>QI Coach</span></div>'+head+'</div></div><div class="vn-text"><p>'+text.trim()+'</p></div><button class="btn" onclick="contEv()">Continue ▶</button>'
+    :head+'<p>'+text.trim()+'</p><button class="btn" onclick="contEv()">Continue ▶</button>');}
+function contEv(){closeModal();curEv=null;S.lastAct=Date.now();render();runQueue();if(!curEv&&S.pendingTour){S.pendingTour=false;startTour();}}
+
+/* ---------- coach (Dr. Rowan) ----------
+   Rule: direct prompts for mechanics (what to click, when to move on);
+   Socratic questions only for QI decisions. Never gives the answer. */
+const TOUR=[
+  {target:'town',text:'This is your district: 8 long-term care facilities and the hospital ED. Click any building to see what\'s happening there. Each week, ambulances show residents heading back to the ED.'},
+  {target:'c-chart',text:'Below the map is your data room. The outcome chart fills in once you have a way to measure returns. It\'s how you\'ll know whether things are really improving.'},
+  {target:'c-tabs',text:'This is where you spend your <b>3 coins a week</b>. There are <b>four tabs</b>: <b>Plan</b>, <b>Measure</b>, <b>Engage</b> and <b>Changes</b>. Each holds different actions, and the number on a tab shows how many you can do right now. Click through all four!'},
+  {target:'c-end',text:'When you\'ve spent your actions, <b>end the week</b>. You\'ll get new data, test results, and sometimes a decision to make. I\'ll nudge you when it\'s time.'}
+];
+function coachSay(key,text,btn){if(!S||!S.coach||S.over||S.tour)return;if(key&&S.coachSeen[key])return;if(key)S.coachSeen[key]=true;S.coachMsg={text,btn};renderCoach();}
+function coachClose(){if(!S)return;S.coachMsg=null;S.tour=null;renderCoach();}
+function coachOff(){if(!S)return;S.coach=false;S.tour=null;S.coachMsg=null;renderCoach();toast('Coach turned off.');}
+function startTour(){if(!S||!S.coach)return;S.tour={i:0};renderCoach();}
+function tourNext(){if(!S||!S.tour)return;S.tour.i++;if(S.tour.i>=TOUR.length)S.tour=null;renderCoach();}
+function renderCoach(){const el=$('coach');document.querySelectorAll('.coach-target').forEach(n=>n.classList.remove('coach-target'));
+  if(!S||!S.coach||S.over||(!S.tour&&!S.coachMsg)){el.classList.add('hidden');el.innerHTML='';return;}
+  let text,acts='';
+  if(S.tour){const st=TOUR[S.tour.i];text=st.text;let tgt=$(st.target);if(tgt&&tgt.offsetParent===null)tgt=$(st.target+'-m');if(tgt){tgt.classList.add('coach-target');const r=tgt.getBoundingClientRect();const hh=(document.querySelector('.top.hud')||{offsetHeight:0}).offsetHeight;if(r.top<hh+10||r.top>window.innerHeight*0.6)window.scrollTo({top:Math.max(0,r.top+window.scrollY-hh-14),behavior:'auto'});}
+    acts='<button class="btn sm" onclick="tourNext()">'+(S.tour.i<TOUR.length-1?'Next ('+(S.tour.i+1)+'/'+TOUR.length+')':'Got it')+'</button>';}
+  else{text=S.coachMsg.text;if(S.coachMsg.btn)acts='<button class="btn sm" onclick="'+S.coachMsg.btn.fn+'">'+S.coachMsg.btn.label+'</button>';}
+  acts+='<button class="off" onclick="coachOff()">Turn off coach</button>';
+  el.innerHTML='<div class="av" aria-hidden="true">'+rowanSVG(40)+'</div><div><div class="who">Dr. Rowan · QI coach</div><div class="msg">'+text+'</div><div class="cacts">'+acts+'</div></div><button class="x" onclick="coachClose()" aria-label="Dismiss coach message">×</button>';
+  el.classList.remove('hidden');}
+function afterAction(){S.lastAct=Date.now();
+  if(S.ap===0&&S.week<=3)coachSay('done'+S.week,'That\'s all 3 actions for week '+S.week+'. <b>End the week</b> to see what happens.',{label:'End week '+S.week+' →',fn:'tryEndWeek()'});
+  else if(S.coachMsg&&S.coachMsg.idle){S.coachMsg=null;renderCoach();}}
+function idleText(){
+  if(!S.m.outcome)return 'Not sure where to start? Ask yourself: at the end of 16 weeks, how would you <i>know</i> things had improved?';
+  if(S.ap===0)return 'Your actions are spent for this week. End the week to see what happens.';
+  const tested=CHANGES.some(c=>S.ch[c.id].cycles),spread=CHANGES.some(c=>S.ch[c.id].active);
+  if(!S.map&&!S.dd.saves.length&&!tested&&!spread)return 'Before picking a change idea: do you know where in the resident\'s journey the returns come from? What\'s your theory of what drives them?';
+  const worked=CHANGES.some(c=>{const st=S.ch[c.id],l=st.results[st.results.length-1];return l&&l.cls==='works'&&!st.active&&!st.pending;});
+  if(!tested&&!spread)return 'Looking over the change ideas? Which one would you want to try small, at one site, before betting all 8 sites on it?';
+  if(worked)return 'One of your tests went well. What\'s the sensible next step for a change that worked at one site?';
+  return 'Quiet moment? Think about what you can\'t see yet. How would you know if a change is really being used, or if something is getting worse?';
+}
+function coachAfterWeek(resolved){if(!S.coach)return;S.coachMsg=null;
+  const d=chartData(false),li=d?d.pts.length-1:-1;
+  const unseen=['plan','measure','engage','changes'].filter(k=>!S.tabsSeen[k]);
+  if(unseen.length&&S.week>=2&&S.week<=5&&!S.coachSeen.tabs)coachSay('tabs','Quick tip: you haven\'t opened the <b>'+unseen.map(k=>k[0].toUpperCase()+k.slice(1)).join('</b>, <b>')+'</b> tab'+(unseen.length>1?'s':'')+' yet. Each tab holds different actions for your coins.',{label:'Open '+unseen[0][0].toUpperCase()+unseen[0].slice(1),fn:"setTab('"+unseen[0]+"');coachClose()"});
+  else if(resolved.length)coachSay('pdsa'+S.week,'Your PDSA results are in for <b>'+resolved.join(', ')+'</b>. Check the Changes tab: what did you learn, and was your prediction right?',{label:'Show results',fn:"setTab('changes');coachClose()"});
+  else if(S.rollout==='accepted'&&S.week>=3&&!S.coachSeen.golive)coachSay('golive','If every home goes live on CareAlert and ED returns don\'t change, was your project a success?',{label:'Open the Plan tab',fn:"setTab('plan');coachClose()"});
+  else if(d&&li>=0&&d.sig[li].length&&!S.coachSeen.signal)coachSay('signal','Something just showed up on your chart: an orange point. Hover it to see which rule it triggered. Does it call for action?');
+  else if(S.week===2&&S.m.outcome)coachSay('firstdata','Your first data point is on the chart. Hover any point for the details. How much would you read into a single week?');
+  else if(S.week===2)coachSay('nodata','A week just went by. What do you actually know about how it went?');
+  else if(S.week===3&&!S.map&&!S.dd.saves.length)coachSay('plan','Before choosing changes: where in the resident\'s journey do the returns actually come from, and what\'s your theory of what drives them?',{label:'Open the Plan tab',fn:"setTab('plan');coachClose()"});
+  else if(S.week===TOTAL_WEEKS)coachSay('last','Final week. Is there anything you want in place before the project ends?');
+  else renderCoach();}
+setInterval(()=>{if(!S||!S.coach||S.over||curEv||S.tour||S.coachMsg||!$('modal').classList.contains('hidden'))return;
+  if(Date.now()-S.lastAct<40000||S.idleShown[S.week])return;S.idleShown[S.week]=true;S.coachMsg={text:idleText(),idle:true};renderCoach();},5000);
+function tryEndWeek(){if(busy())return;
+  if(S.ap>0){showModal('<h3>End week '+S.week+'?</h3><p>You still have <b>'+S.ap+' action'+(S.ap>1?'s':'')+'</b> left. Unused coins don\'t carry over to next week. Check all four tabs (Plan, Measure, Engage, Changes) for options.</p><div class="opts"><button onclick="closeModal();endWeek()">End the week anyway</button><button onclick="closeModal()">Keep planning</button></div>');return;}
+  endWeek();}
+
+/* ---------- week simulation ---------- */
+function endWeek(){if(busy())return;
+  const w=S.week,gwBefore=S.goodwill;S.coachMsg=null;renderCoach();
+  CHANGES.forEach(c=>{const st=S.ch[c.id];if(st.active){const cap=capFor(c.id);const rate=c.ramp*(S.goodwill<30?0.5:1);st.adoption=Math.min(cap,st.adoption+rate);}});
+  const mand=S.ch.mandate;if(mand.active&&mand.adoption>0)S.goodwill=clamp(S.goodwill-2);
+  let p=BASE;CHANGES.forEach(c=>{const st=S.ch[c.id];if(st.active)p*=1-c.effect*st.adoption;});
+  p+=S.specials[w]||0;
+  const W=S.wk[w];let z=W.z;
+  if(w===S.flu){p=Math.max(p,S.baseMean+4.2*Math.sqrt(S.baseMean*(1-S.baseMean)/W.n));z=Math.max(z,0);} // outbreak must be a clear special cause
+  const o=makeObs(W.n,p,z);o.w=w;S.obs.push(o);
+  const h=mand.active?Math.max(0,Math.round(mand.adoption*2.5+0.5*W.hz)):(W.hz>1.6?1:0);S.harm.push({w,h});if(mand.active)S.harmAccum+=h;
+  const resolved=[];CHANGES.forEach(c=>{const st=S.ch[c.id];if(st.pending&&st.pending.week===w){resolvePDSA(c.id);resolved.push(c.id);}});
+  let anec=null;
+  if(mand.active&&S.m.balancing&&S.harmAccum>=2&&!S.harmWarned){S.harmWarned=true;S.queue.push({id:'harmWarn'});}
+  else if(mand.active&&!S.m.balancing&&h>=1&&!S.anecdote){S.anecdote=w;anec='A nurse at '+S.rolls.mandate.site+' mentions that a resident with chest pain waited over two hours for transfer sign-off. "Is that how the new approval policy is supposed to work?"';addLog('Heard on the floor: a resident waited over two hours for transfer sign-off under the mandatory approval policy.','warn');}
+  else if(mand.active&&S.harmAccum>=6&&!S.incident&&(S.harmWarned||(S.anecdote&&w>S.anecdote))){S.incident=true;S.queue.push({id:'incident'});}
+  S.week++;S.ap=S.apNext;S.apNext=AP_WEEK;
+  if(S.week<=TOTAL_WEEKS){
+    if(S.rollout==='accepted'&&S.week===5&&!S.ch.ewt.active)S.queue.push({id:'golive'});
+    Object.entries(S.sched).forEach(([k,v])=>{if(v===S.week&&!S.fired[k]){S.fired[k]=true;S.queue.push({id:k});}});
+    if(S.week>=11&&!S.fired.common){const n=S.obs.length,a=S.obs[n-1],b=S.obs[n-2];
+      if(b&&a.p>b.p&&!S.specials[a.w]&&!S.specials[b.w]){const sd=Math.sqrt(S.baseMean*(1-S.baseMean)/a.n);if(a.p<S.baseMean+3*sd){S.fired.common=true;S.queue.push({id:'common'});}}}
+  }
+  const nb=checkBadges(false,true);
+  S.review={w,o,anec,resolved,resolvedNames:resolved.map(id=>CH[id].short),gwBefore,gwAfter:S.goodwill,badges:nb};
+  S.lastAct=Date.now();render();playTransition();
+}
+
+/* ---------- chart ---------- */
+function chartData(reveal){
+  const useOutcome=reveal||S.m.outcome, useBase=reveal||S.m.baseline;
+  if(!useOutcome)return null;
+  const pts=[];let projStart=null;
+  if(useBase){S.hist.forEach((o,i)=>pts.push(Object.assign({},o,{label:'B'+(i+1),hist:true})));projStart=12;S.obs.forEach(o=>pts.push(Object.assign({},o,{label:'W'+o.w})));}
+  else S.obs.filter(o=>o.w>=S.outcomeStart).forEach(o=>pts.push(Object.assign({},o,{label:'W'+o.w})));
+  const slots=useBase?12+TOTAL_WEEKS:TOTAL_WEEKS-S.outcomeStart+1;
+  let mode='run',centre=null,note='';
+  if(useBase)mode='p',centre=S.baseMean;
+  else if(pts.length>=8){const f=pts.slice(0,8);centre=f.reduce((a,o)=>a+o.x,0)/f.reduce((a,o)=>a+o.n,0);mode='p';note='No pre-project baseline: the centre line and limits come from your first 8 weeks of data, which may already include your changes.';}
+  else if(pts.length){const ps=pts.map(o=>o.p).sort((a,b)=>a-b),m=ps.length;centre=m%2?ps[(m-1)/2]:(ps[m/2-1]+ps[m/2])/2;note='Run chart (median line). Control limits appear after 8 weeks of data, or pull baseline data to see them now.';}
+  const ucl=[],lcl=[],sig=pts.map(()=>[]);
+  if(mode==='p'){
+    const sdOf=k=>Math.sqrt(centre*(1-centre)/pts[k].n);
+    pts.forEach((o,i)=>{const sd=sdOf(i);ucl[i]=centre+3*sd;lcl[i]=Math.max(0,centre-3*sd);if(o.p>ucl[i]||o.p<lcl[i])sig[i].push('beyond');});
+    let run=0,side=0;for(let i=0;i<pts.length;i++){const s=pts[i].p>centre?1:pts[i].p<centre?-1:0;if(s!==0&&s===side)run++;else{side=s;run=s?1:0;}if(run>=8)for(let j=i-run+1;j<=i;j++)if(!sig[j].includes('shift'))sig[j].push('shift');}
+    let up=1,dn=1;for(let i=1;i<pts.length;i++){up=pts[i].p>pts[i-1].p?up+1:1;dn=pts[i].p<pts[i-1].p?dn+1:1;const t=Math.max(up,dn);if(t>=6)for(let j=i-t+1;j<=i;j++)if(!sig[j].includes('trend'))sig[j].push('trend');}
+    for(let i=2;i<pts.length;i++)for(const s of[1,-1]){const idx=[i-2,i-1,i].filter(k=>s>0?pts[k].p>centre+2*sdOf(k):pts[k].p<centre-2*sdOf(k));if(idx.length>=2&&idx.includes(i))idx.forEach(k=>{if(!sig[k].includes('2of3'))sig[k].push('2of3');});}
+  }
+  return {pts,slots,mode,centre,ucl,lcl,sig,projStart,note};
+}
+function chartSVG(d){
+  const W=680,H=260,ml=44,mr=14,mt=14,mb=30,pw=W-ml-mr,ph=H-mt-mb,pts=d.pts,N=Math.max(d.slots,2);
+  let ymax=0.4;pts.forEach((p,i)=>{ymax=Math.max(ymax,p.p+0.03,(d.ucl[i]||0)+0.02);});ymax=Math.min(1,Math.ceil(ymax*20)/20);
+  const step=pw/(N-1),X=i=>ml+i*step,Y=v=>mt+ph-(v/ymax)*ph;
+  let s='<svg viewBox="0 0 '+W+' '+H+'" class="chart" role="img" aria-label="Weekly 30-day ED return rate chart">';
+  for(let g=0;g<=ymax+1e-9;g+=0.1){const y=Y(g).toFixed(1);s+='<line class="grid" x1="'+ml+'" x2="'+(W-mr)+'" y1="'+y+'" y2="'+y+'"/><text class="ax" x="'+(ml-6)+'" y="'+(+y+4)+'" text-anchor="end">'+Math.round(g*100)+'%</text>';}
+  s+='<line class="aimln" x1="'+ml+'" x2="'+(W-mr)+'" y1="'+Y(AIM)+'" y2="'+Y(AIM)+'"/><text class="ax" x="'+(W-mr)+'" y="'+(Y(AIM)+13)+'" text-anchor="end" style="fill:var(--aim)">Aim 15%</text>';
+  if(d.projStart!=null){const x=(X(d.projStart-1)+X(d.projStart))/2;s+='<line class="div" x1="'+x+'" x2="'+x+'" y1="'+mt+'" y2="'+(mt+ph)+'"/><text class="ax" x="'+(x+4)+'" y="'+(mt+10)+'">Project start →</text>';}
+  if(pts.length){
+    if(d.mode==='p'){
+      const lim=arr=>{let path='';pts.forEach((o,i)=>{const x0=Math.max(ml,X(i)-step/2),x1=Math.min(W-mr,X(i)+step/2),y=Y(arr[i]).toFixed(1);path+=(i===0?'M'+x0.toFixed(1)+' '+y:'V'+y)+'H'+x1.toFixed(1);});return path;};
+      s+='<path class="lim" d="'+lim(d.ucl)+'"/><path class="lim" d="'+lim(d.lcl)+'"/>';
+    }
+    if(d.centre!=null)s+='<line class="cl" x1="'+ml+'" x2="'+(W-mr)+'" y1="'+Y(d.centre)+'" y2="'+Y(d.centre)+'"/>';
+    s+='<polyline class="data" points="'+pts.map((o,i)=>X(i).toFixed(1)+','+Y(o.p).toFixed(1)).join(' ')+'"/>';
+    pts.forEach((o,i)=>{const cls=d.sig[i].length?'pt sig':o.hist?'pt hist':'pt';s+='<circle class="'+cls+'" cx="'+X(i).toFixed(1)+'" cy="'+Y(o.p).toFixed(1)+'" r="4.2"><title>'+o.label+': '+o.x+' of '+o.n+' ('+pct(o.p)+')'+(d.sig[i].length?' · signal: '+d.sig[i].map(r=>RULES[r]).join('; '):'')+'</title></circle>';});
+  }
+  const every=N>20?4:N>12?2:1;
+  for(let i=0;i<N;i++){if(i%every)continue;let lab='';if(d.projStart!=null)lab=i<12?'B'+(i+1):'W'+(i-11);else lab='W'+(S.outcomeStart+i);s+='<text class="ax" x="'+X(i).toFixed(1)+'" y="'+(H-10)+'" text-anchor="middle">'+lab+'</text>';}
+  return s+'</svg>';
+}
+function legend(d){return '<div class="legend"><span><i class="dot" style="background:var(--accent)"></i>Weekly rate</span><span><i class="dot" style="background:var(--sig)"></i>Special-cause signal</span>'+(d.projStart!=null?'<span><i class="dot" style="background:var(--muted)"></i>Baseline</span>':'')+'<span><i class="sw" style="border-color:var(--ink)"></i>'+(d.mode==='p'?'Centre (mean)':'Median')+'</span>'+(d.mode==='p'?'<span><i class="sw" style="border-color:var(--bad);border-top-style:dashed"></i>Control limits (3σ)</span>':'')+'<span><i class="sw" style="border-color:var(--aim);border-top-style:dotted"></i>Aim</span></div>';}
+function sigNote(d){
+  if(!d.pts.length)return '<div class="signote">Data appears on the chart when you end this week.</div>';
+  const i=d.pts.length-1,o=d.pts[i],rs=d.sig[i];
+  let t='<b>'+o.label+':</b> '+o.x+' of '+o.n+' residents returned ('+pct(o.p)+'). ';
+  if(d.mode!=='p')t+='Too few points for control limits yet.';
+  else if(rs.length)t+='<b style="color:var(--sig)">Special-cause signal</b> ('+(o.p<d.centre?'below':'above')+' centre): '+rs.map(r=>RULES[r]).join('; ')+'.';
+  else t+='No special-cause signal. This week\'s value is within common-cause variation.';
+  return '<div class="signote'+(rs.length?' on':'')+'">'+t+(d.note?'<br><span class="muted">'+d.note+'</span>':'')+'</div>';
+}
+
+/* ================= CARTOON SIM LAYER (original art, kitchen-diorama style) ================= */
+const OL='#001549';
+const PAL={navy:OL,plum:'#8e3b8f',green:'#3dbb5a',brown:'#c8763a',dgrey:'#6b6480',lgrey:'#cfd3dd',cream:'#fff6e6',red:'#ff5a5a',orange:'#ff9f2e',yellow:'#ffcc33',lime:'#5ee36a',blue:'#4cb8ff',lav:'#9b8cf0',pink:'#ff8fc0',peach:'#ffd2b0',teal:'#3fd0c9'};
+const rr=(x,y,w,h,c,extra)=>'<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+c+'"'+(extra||'')+'/>';
+const st=(w)=>' stroke="'+OL+'" stroke-width="'+(w||4)+'" stroke-linejoin="round" stroke-linecap="round"';
+
+/* big-head cartoon portraits (100x100) */
+function faceSVG(o,size,label){let s='';const id='fc'+Math.random().toString(36).slice(2,8);
+  s+='<defs><clipPath id="'+id+'"><circle cx="50" cy="50" r="48"/></clipPath></defs><circle cx="50" cy="50" r="48" fill="'+o.bg+'"/><g clip-path="url(#'+id+')">';
+  s+='<circle cx="80" cy="18" r="16" fill="#ffffff" opacity=".18"/>';
+  if(o.hair==='long')s+='<path d="M23 44 Q17 86 30 100 L70 100 Q83 86 77 44 Z" fill="'+o.hc+'"'+st(3)+'/>';
+  if(o.hair==='bob')s+='<path d="M23 42 Q20 72 29 77 L71 77 Q80 72 77 42 Z" fill="'+o.hc+'"'+st(3)+'/>';
+  s+='<rect x="43" y="60" width="14" height="18" fill="'+(o.skinD||o.skin)+'"/>';
+  s+='<path d="M10 106 Q12 79 38 74 L62 74 Q88 79 90 106 Z" fill="'+(o.coat?'#ffffff':o.shirt)+'"'+st(3)+'/>';
+  if(o.coat){s+='<path d="M41 74 L50 90 L59 74 Z" fill="'+o.shirt+'"'+st(2.5)+'/><path d="M37 76 L46 100 M63 76 L54 100" fill="none"'+st(2)+'/>';}
+  if(o.tie)s+='<path d="M47.5 75 L52.5 75 L55 92 L50 97 L45 92 Z" fill="'+o.tie+'"'+st(2)+'/>';
+  if(o.scrubs)s+='<path d="M41 74 L50 85 L59 74" fill="none"'+st(2.5)+'/>';
+  if(o.steth)s+='<path d="M38 77 Q32 92 46 96 M62 77 Q67 90 58 95" fill="none" stroke="#56607a" stroke-width="3.2" stroke-linecap="round"/><circle cx="52" cy="96" r="4" fill="#cfd3dd"'+st(2)+'/>';
+  if(o.badge)s+='<rect x="64" y="84" width="13" height="8" rx="2" fill="'+o.badge+'"'+st(2)+'/>';
+  s+='<circle cx="27" cy="47" r="6" fill="'+o.skin+'"'+st(3)+'/><circle cx="73" cy="47" r="6" fill="'+o.skin+'"'+st(3)+'/>';
+  if(o.earring)s+='<circle cx="27" cy="55" r="2.6" fill="'+PAL.blue+'"'+st(1.5)+'/><circle cx="73" cy="55" r="2.6" fill="'+PAL.blue+'"'+st(1.5)+'/>';
+  s+='<ellipse cx="50" cy="44" rx="23" ry="25" fill="'+o.skin+'"'+st(3)+'/>';
+  const hp={short:'M27 41 Q25 17 50 16 Q75 17 73 41 Q67 29 50 29 Q35 29 27 41 Z',long:'M25 45 Q23 15 50 15 Q77 15 75 45 Q70 28 54 27 Q40 35 25 45 Z',bob:'M24 49 Q21 13 50 14 Q79 13 76 49 Q74 30 61 28 Q47 37 30 34 Q26 41 24 49 Z',bun:'M27 40 Q26 18 50 17 Q74 18 73 40 Q66 30 50 30 Q35 30 27 40 Z'}[o.hair];
+  if(hp)s+='<path d="'+hp+'" fill="'+o.hc+'"'+st(3)+'/>';
+  if(o.hair==='bun')s+='<circle cx="50" cy="13" r="9" fill="'+o.hc+'"'+st(3)+'/>';
+  if(o.hair==='bald')s+='<ellipse cx="42" cy="27" rx="7" ry="4" fill="#ffffff" opacity=".45"/>';
+  s+='<path d="M36 37 Q41 34 45 37 M55 37 Q59 34 64 37" fill="none"'+st(2.6)+'/>';
+  s+='<ellipse cx="41" cy="45" rx="3.6" ry="4.6" fill="'+OL+'"/><ellipse cx="59" cy="45" rx="3.6" ry="4.6" fill="'+OL+'"/><circle cx="42.3" cy="43.4" r="1.3" fill="#fff"/><circle cx="60.3" cy="43.4" r="1.3" fill="#fff"/>';
+  if(o.glasses)s+='<circle cx="41" cy="45" r="8" fill="#ffffff" fill-opacity=".2"'+st(2.5)+'/><circle cx="59" cy="45" r="8" fill="#ffffff" fill-opacity=".2"'+st(2.5)+'/><path d="M49 45 L51 45" fill="none"'+st(2.5)+'/>';
+  if(o.blush!==false)s+='<ellipse cx="34" cy="54" rx="5" ry="3" fill="#ff8fa3" opacity=".55"/><ellipse cx="66" cy="54" rx="5" ry="3" fill="#ff8fa3" opacity=".55"/>';
+  s+='<path d="M43 56 Q50 63 57 56" fill="none"'+st(3)+'/>';
+  s+='</g><circle cx="50" cy="50" r="48" fill="none"'+st(4)+'/>';
+  return '<svg viewBox="0 0 100 100" width="'+size+'" height="'+size+'" role="img" aria-label="'+(label||'Portrait')+'" style="display:block">'+s+'</svg>';}
+const pixelFace=faceSVG;
+const CAST={
+  rowan:{name:'Dr. Rowan',role:'QI Coach',face:{bg:'#7fd8ff',skin:'#f0b48a',skinD:'#d8966c',hc:'#5a3420',hair:'long',coat:true,shirt:PAL.teal,steth:true,earring:true}},
+  hale:{name:'Morgan Hale',role:'Regional Director',face:{bg:'#c7b8ff',skin:PAL.peach,skinD:'#e6b490',hc:'#d7dbe4',hair:'short',shirt:'#3a4a8a',tie:PAL.red,glasses:true}},
+  ortiz:{name:'Dr. Sam Ortiz',role:'Hospitalist',face:{bg:'#ffc56e',skin:'#c08a5c',skinD:'#a07048',hc:'#2a1d18',hair:'short',coat:true,shirt:PAL.blue,steth:true}},
+  brooks:{name:'Dana Brooks',role:'Facility Director',face:{bg:'#8ff0a0',skin:'#8a5a38',skinD:'#704628',hc:'#21160f',hair:'bun',shirt:PAL.plum,badge:PAL.yellow}},
+  vos:{name:'Dr. Ingrid Vos',role:'Geriatrician',face:{bg:'#ffb3d6',skin:PAL.peach,skinD:'#e6b490',hc:'#ffd84a',hair:'bob',coat:true,shirt:PAL.lav,steth:true,glasses:true}},
+  kiran:{name:'Kiran Gill',role:'Nurse Champion',face:{bg:'#8fe4ff',skin:'#cf9466',skinD:'#b27a50',hc:'#21160f',hair:'long',shirt:'#3fc6a8',scrubs:true,badge:'#ffffff'}},
+  lou:{name:'Lou Ferreira',role:'Operations Manager',face:{bg:'#e3e6ee',skin:'#f0c098',skinD:'#d4a27a',hc:'#b0562a',hair:'short',shirt:PAL.orange}},
+  mensah:{name:'A. Mensah',role:'Journal Editor',face:{bg:'#fff1cf',skin:'#6a4028',skinD:'#55321e',hc:'#21160f',hair:'bald',shirt:'#5d5a74',glasses:true}},
+  tran:{name:'Jo Tran',role:'Patient Safety Officer',face:{bg:'#ff9a9a',skin:'#f4cc9c',skinD:'#d8ae7e',hc:'#21160f',hair:'bob',shirt:'#3a4a8a',badge:PAL.yellow}}
+};
+const SPEAKER={rct:'ortiz',reb:'brooks',spike:'hale',common:'hale',staff:'lou',drug:'vos',champ:'kiran',pub:'mensah',harmWarn:'tran',incident:'tran'};
+function rowanSVG(size){return faceSVG(CAST.rowan.face,size,'Dr. Rowan, QI coach');}
+
+/* badges & rank */
+const BADGES=[
+  {id:'measured',name:'Measure First',desc:'Outcome measure and baseline in place before spreading any change.',c:PAL.blue,l:'M'},
+  {id:'gemba',name:'Walked the Floor',desc:'Mapped the process with frontline staff, so every step was clear.',c:PAL.lime,l:'W'},
+  {id:'theory',name:'Living Theory',desc:'Revised your driver diagram as you learned.',c:PAL.pink,l:'T'},
+  {id:'small',name:'Small Tests First',desc:'Tested every change before spreading it (at least two spread).',c:PAL.orange,l:'S'},
+  {id:'oracle',name:'Oracle',desc:'Made three correct PDSA predictions.',c:PAL.lav,l:'P'},
+  {id:'harm',name:'Eyes on Harm',desc:'Had a balancing measure in place by week 4.',c:PAL.red,l:'H'},
+  {id:'steady',name:'Steady Hand',desc:'Responded correctly to both signal and noise.',c:PAL.yellow,l:'V'},
+  {id:'line',name:'Knows the Line',desc:'Got every QI-vs-research call right.',c:PAL.plum,l:'R'},
+  {id:'coalition',name:'Coalition Builder',desc:'Engaged all four stakeholder groups.',c:PAL.green,l:'C'},
+  {id:'rollout',name:'Not Just a Rollout',desc:'Reframed the CareAlert rollout as QI and labelled all three charters correctly.',c:PAL.teal,l:'Q'},
+  {id:'aim',name:'Aim Achieved',desc:'Finished at or below the 15% aim.',c:'#ffb300',l:'★'}];
+const RANKS=['QI Novice','QI Novice','Improvement Apprentice','Improvement Apprentice','Improvement Lead','Improvement Lead','QI Champion','QI Champion','QI Champion','System Leader','System Leader','System Leader'];
+function rankName(){return RANKS[Math.min(S.badges.length,RANKS.length-1)];}
+function medal(b,size,locked){const c=locked?'#d6d3e0':b.c;return '<svg viewBox="0 0 40 48" width="'+size+'" height="'+Math.round(size*48/40)+'" role="img" aria-label="'+b.name+(locked?' (locked)':'')+'" style="display:block">'+
+  '<path d="M10 2 L18 2 L22 18 L14 18 Z" fill="'+(locked?'#a9a5b8':PAL.red)+'"'+st(2.5)+'/><path d="M30 2 L22 2 L18 18 L26 18 Z" fill="'+(locked?'#bdb9cc':PAL.blue)+'"'+st(2.5)+'/>'+
+  '<circle cx="20" cy="30" r="15" fill="'+c+'"'+st(3)+'/><circle cx="20" cy="30" r="10.5" fill="none" stroke="#ffffff" stroke-opacity=".55" stroke-width="2"/><ellipse cx="14.5" cy="24.5" rx="4" ry="2.6" fill="#fff" opacity=".55"/>'+
+  '<text x="20" y="35.5" text-anchor="middle" class="svgfont" font-weight="900" font-size="15" fill="'+OL+'">'+b.l+'</text></svg>';}
+function badgeCond(id,final){const s=S;
+  switch(id){
+    case 'measured':return s.m.outcome&&s.m.baseline&&!s.spreadBeforeMeasure;
+    case 'gemba':return s.maps.some(m=>m.rev.every(Boolean));
+    case 'theory':return ddScore().revised;
+    case 'small':{const sp=CHANGES.filter(c=>s.ch[c.id].everActive);return sp.length>=2&&!sp.some(c=>s.ch[c.id].spreadUntested);}
+    case 'oracle':return s.pdsa.correct>=3;
+    case 'harm':return !!s.harmEarly;
+    case 'steady':return s.judg.spike===true&&(s.judg.common===true||(final&&s.judg.common===undefined));
+    case 'line':return ['rct','reb','drug','pub'].every(k=>s.judg[k]===true);
+    case 'rollout':return s.rollout==='reframed'&&!!s.charter&&s.charter.correct===3;
+    case 'coalition':return Object.keys(STAKE).every(k=>s.engaged[k]);
+    case 'aim':return final&&s.result&&s.result.finalP<=AIM;}
+  return false;}
+function checkBadges(final,quiet){const got=[];BADGES.forEach(b=>{if(!S.badges.includes(b.id)&&badgeCond(b.id,final)){S.badges.push(b.id);got.push(b);}});
+  if(got.length&&!quiet){sfx('badge');toast('Badge unlocked: '+got.map(b=>b.name).join(', '));}
+  return got;}
+function openBadges(){showModal('<div class="ev-tag">Achievements</div><h3>'+rankName()+' · '+S.badges.length+' of '+BADGES.length+' badges</h3><div class="badgegrid">'+BADGES.map(b=>{const has=S.badges.includes(b.id);return '<div class="bdg'+(has?'':' locked')+'">'+medal(b,40,!has)+'<div><b>'+b.name+'</b><span>'+b.desc+'</span></div></div>';}).join('')+'</div><button class="btn" onclick="closeModal()">Close</button>',true);}
+
+/* sound (Web Audio, off by default) */
+let AC=null;
+function sfx(k){if(!S||!S.sound)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();
+  const seq={click:[[660,.04]],good:[[523,.07],[659,.07],[784,.12]],bad:[[311,.12],[233,.2]],badge:[[784,.07],[988,.07],[1319,.16]],week:[[440,.05],[587,.08]],siren:[[880,.14],[660,.14],[880,.14],[660,.14]]}[k]||[];
+  let t=AC.currentTime;seq.forEach(([f,d])=>{const o=AC.createOscillator(),g=AC.createGain();o.type='triangle';o.frequency.value=f;g.gain.setValueAtTime(.06,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d+.02);t+=d;});}catch(e){}}
+function toggleSound(){S.sound=!S.sound;if(S.sound)sfx('click');render();}
+function toggleMotion(){S.motion=!S.motion;render();}
+function busy(){return !S||S.over||!!curEv||!!S.anim||!!S.review;}
+
+/* ---------- district map (960x560 diorama) ---------- */
+const ROAD_Y=258,ED_X=480,ED_Y=236;
+const FAC=[
+  {x:36,y:150,roof:'#ff6b6b'},{x:228,y:150,roof:'#4cb8ff'},{x:624,y:150,roof:'#b06ad8'},{x:816,y:150,roof:'#ff9f2e'},
+  {x:60,y:304,roof:'#3dbb5a'},{x:262,y:304,roof:'#9b8cf0'},{x:592,y:304,roof:'#e0874a'},{x:800,y:304,roof:'#ff8fc0'}];
+const CH_COLOR={acp:PAL.pink,virtual:PAL.blue,handover:PAL.orange,iv:PAL.lime,ewt:PAL.yellow,pharm:PAL.lav,poster:'#d6d3e0',mandate:PAL.red};
+function facLocal(i){if(!S)return {adopt:0,morale:55,active:[]};const f=S.fac[i];const active=CHANGES.filter(c=>S.ch[c.id].active);
+  const adopt=active.length?active.reduce((a,c)=>a+Math.min(1,S.ch[c.id].adoption*f.mult),0)/active.length:0;
+  return {adopt,morale:clamp(S.goodwill+f.mor),active,local:c=>Math.min(1,S.ch[c.id].adoption*f.mult)};}
+function tree(x,y,k){k=k||1;const r=16*k;return '<ellipse cx="'+x+'" cy="'+(y+r+6)+'" rx="'+(r*0.9)+'" ry="'+(r*0.28)+'" fill="#000" opacity=".15"/><rect x="'+(x-4*k)+'" y="'+(y+r*0.4)+'" width="'+(8*k)+'" height="'+(r*0.9)+'" rx="3" fill="#a8622e"'+st(3)+'/><circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="#43c160"'+st(3.5)+'/><circle cx="'+(x-r*0.35)+'" cy="'+(y-r*0.35)+'" r="'+(r*0.38)+'" fill="#7ee08a"/>';}
+function bush(x,y){return '<ellipse cx="'+x+'" cy="'+(y+7)+'" rx="15" ry="4" fill="#000" opacity=".12"/><path d="M'+(x-14)+' '+(y+6)+' Q'+(x-16)+' '+(y-6)+' '+(x-6)+' '+(y-6)+' Q'+(x-2)+' '+(y-14)+' '+(x+6)+' '+(y-8)+' Q'+(x+16)+' '+(y-8)+' '+(x+14)+' '+(y+6)+' Z" fill="#3dbb5a"'+st(3)+'/><circle cx="'+(x-4)+'" cy="'+(y-4)+'" r="2.4" fill="#ffd1e6"/><circle cx="'+(x+6)+'" cy="'+(y-1)+'" r="2.4" fill="#fff59a"/>';}
+function house(x,y,roof){return '<ellipse cx="'+(x+54)+'" cy="'+(y+88)+'" rx="60" ry="9" fill="#000" opacity=".16"/>'+
+  '<rect x="'+(x+8)+'" y="'+(y+34)+'" width="92" height="52" rx="9" fill="#fff6e6"/><rect x="'+(x+10)+'" y="'+(y+70)+'" width="88" height="14" rx="6" fill="#f2dcc0"/><rect x="'+(x+8)+'" y="'+(y+34)+'" width="92" height="52" rx="9" fill="none"'+st(4)+'/>'+
+  '<rect x="'+(x+76)+'" y="'+(y-6)+'" width="11" height="22" rx="3" fill="#d96a5a"'+st(3)+'/>'+
+  '<path d="M'+(x+2)+' '+(y+40)+' L'+(x+20)+' '+(y+6)+' Q'+(x+22)+' '+(y+3)+' '+(x+27)+' '+(y+3)+' L'+(x+81)+' '+(y+3)+' Q'+(x+86)+' '+(y+3)+' '+(x+88)+' '+(y+6)+' L'+(x+106)+' '+(y+40)+' Z" fill="'+roof+'"'+st(4)+'/>'+
+  '<path d="M'+(x+24)+' '+(y+9)+' L'+(x+84)+' '+(y+9)+' L'+(x+89)+' '+(y+18)+' L'+(x+19)+' '+(y+18)+' Z" fill="#fff" opacity=".28"/>'+
+  '<rect x="'+x+'" y="'+(y+37)+'" width="108" height="9" rx="4.5" fill="'+roof+'"'+st(4)+'/><rect x="'+(x+2)+'" y="'+(y+41)+'" width="104" height="3" fill="#000" opacity=".15"/>'+
+  '<rect x="'+(x+18)+'" y="'+(y+52)+'" width="20" height="17" rx="4" fill="#9ee4ff"'+st(3)+'/><path d="M'+(x+28)+' '+(y+52)+' V'+(y+69)+'" fill="none"'+st(2)+'/><rect x="'+(x+21)+'" y="'+(y+55)+'" width="4" height="5" rx="1" fill="#fff"/>'+
+  '<rect x="'+(x+70)+'" y="'+(y+52)+'" width="20" height="17" rx="4" fill="#9ee4ff"'+st(3)+'/><path d="M'+(x+80)+' '+(y+52)+' V'+(y+69)+'" fill="none"'+st(2)+'/><rect x="'+(x+73)+'" y="'+(y+55)+'" width="4" height="5" rx="1" fill="#fff"/>'+
+  '<rect x="'+(x+45)+'" y="'+(y+57)+'" width="18" height="29" rx="7" fill="#c8763a"'+st(3)+'/><circle cx="'+(x+58)+'" cy="'+(y+72)+'" r="1.8" fill="#ffd84a"/>'+
+  '<rect x="'+(x+41)+'" y="'+(y+84)+'" width="26" height="6" rx="3" fill="#e2d2b8"'+st(2.5)+'/>'+bush(x+2,y+80)+bush(x+106,y+80);}
+function hospital(){const x=376,y=36;let s='<ellipse cx="'+(x+104)+'" cy="'+(y+202)+'" rx="118" ry="12" fill="#000" opacity=".16"/>';
+  s+='<rect x="'+x+'" y="'+(y+52)+'" width="208" height="148" rx="14" fill="#eef8ff"/><rect x="'+(x+2)+'" y="'+(y+170)+'" width="204" height="28" rx="10" fill="#d6ebf9"/><rect x="'+x+'" y="'+(y+52)+'" width="208" height="148" rx="14" fill="none"'+st(4)+'/>';
+  s+='<rect x="'+(x-6)+'" y="'+(y+30)+'" width="220" height="32" rx="12" fill="#b8dcf3"'+st(4)+'/><rect x="'+(x+4)+'" y="'+(y+36)+'" width="200" height="6" rx="3" fill="#fff" opacity=".45"/>';
+  s+='<circle cx="'+(x+104)+'" cy="'+(y+20)+'" r="24" fill="#fff"'+st(4)+'/><rect x="'+(x+98)+'" y="'+(y+6)+'" width="12" height="28" rx="3" fill="#ff5a5a"/><rect x="'+(x+90)+'" y="'+(y+14)+'" width="28" height="12" rx="3" fill="#ff5a5a"/>';
+  for(let r=0;r<3;r++)for(let c=0;c<6;c++){if(r===2&&c>=1&&c<=4)continue;const wx=x+14+c*32,wy=y+68+r*30;s+='<rect x="'+wx+'" y="'+wy+'" width="22" height="19" rx="5" fill="#9ee4ff"'+st(3)+'/><rect x="'+(wx+3)+'" y="'+(wy+3)+'" width="5" height="6" rx="1.5" fill="#fff"/>';}
+  s+='<rect x="'+(x+56)+'" y="'+(y+124)+'" width="96" height="22" rx="8" fill="#ff5a5a"'+st(3.5)+'/><text x="'+(x+104)+'" y="'+(y+140)+'" text-anchor="middle" class="svgfont" font-weight="900" font-size="14" fill="#fff" letter-spacing="1">EMERGENCY</text>';
+  s+='<path d="M'+(x+66)+' '+(y+150)+' H'+(x+142)+' L'+(x+150)+' '+(y+162)+' H'+(x+58)+' Z" fill="#ffcc33"'+st(3.5)+'/>';
+  s+='<rect x="'+(x+80)+'" y="'+(y+164)+'" width="48" height="36" rx="5" fill="#7fd3ff"'+st(3.5)+'/><path d="M'+(x+104)+' '+(y+164)+' V'+(y+200)+'" fill="none"'+st(2.5)+'/>';
+  return s;}
+function moodBubble(x,y,m){const c=m>=60?PAL.lime:m>=35?PAL.yellow:PAL.red;
+  const mouth=m>=60?'M'+(x-6)+' '+(y+3)+' Q'+x+' '+(y+9)+' '+(x+6)+' '+(y+3):m>=35?'M'+(x-5)+' '+(y+5)+' H'+(x+5):'M'+(x-6)+' '+(y+8)+' Q'+x+' '+(y+2)+' '+(x+6)+' '+(y+8);
+  return '<circle cx="'+x+'" cy="'+y+'" r="15" fill="'+c+'"'+st(3.5)+'/><circle cx="'+(x-5)+'" cy="'+(y-3)+'" r="2.3" fill="'+OL+'"/><circle cx="'+(x+5)+'" cy="'+(y-3)+'" r="2.3" fill="'+OL+'"/><path d="'+mouth+'" fill="none"'+st(2.6)+'/>';}
+const AMB='<g class="ambg"><ellipse cx="0" cy="13" rx="21" ry="4" fill="#000" opacity=".2"/><rect x="-19" y="-11" width="38" height="21" rx="7" fill="#fff"'+st(3)+'/><rect x="5" y="-8" width="11" height="9" rx="3" fill="#9ee4ff"'+st(2.2)+'/><rect x="-19" y="1" width="38" height="4" fill="#ff5a5a"/><rect x="-11" y="-8" width="4" height="10" rx="1" fill="#ff5a5a"/><rect x="-14" y="-5" width="10" height="4" rx="1" fill="#ff5a5a"/><rect class="lamp" x="-6" y="-17" width="11" height="6" rx="3" fill="'+PAL.blue+'"'+st(2.2)+'/><circle cx="-10" cy="11" r="5" fill="'+OL+'"/><circle cx="10" cy="11" r="5" fill="'+OL+'"/><circle cx="-10" cy="11" r="2" fill="#cfd3dd"/><circle cx="10" cy="11" r="2" fill="#cfd3dd"/></g>';
+function walkerSprite(m,scrub){const happy=m>=50;return '<g><ellipse cx="0" cy="1" rx="9" ry="3" fill="#000" opacity=".2"/><g class="bob"><rect x="-6" y="-10" width="4" height="10" rx="2" fill="'+OL+'"/><rect x="2" y="-10" width="4" height="10" rx="2" fill="'+OL+'"/>'+
+  '<rect x="-9" y="-24" width="18" height="17" rx="7" fill="'+scrub+'"'+st(2.5)+'/><circle cx="0" cy="-33" r="10" fill="#f0c098"'+st(2.5)+'/><path d="M-10 -34 Q-10 -45 0 -45 Q10 -45 10 -34 Q5 -40 0 -39 Q-5 -40 -10 -34 Z" fill="#3a2418"'+st(2)+'/>'+
+  '<circle cx="-3.5" cy="-33" r="1.5" fill="'+OL+'"/><circle cx="3.5" cy="-33" r="1.5" fill="'+OL+'"/><path d="'+(happy?'M-3 -29 Q0 -26 3 -29':'M-3 -27 Q0 -30 3 -27')+'" fill="none"'+st(1.6)+'/>'+(happy?'':'<path d="M6 -40 q2 3 0 5" fill="none" stroke="#4cb8ff" stroke-width="2" stroke-linecap="round"/>')+'</g></g>';}
+function townSVG(){const live=!!S&&!S.over;
+  let s='<svg viewBox="0 0 960 560" class="town" role="img" aria-label="District map of 8 long-term care homes and the hospital emergency department">';
+  s+='<rect x="0" y="0" width="960" height="560" fill="#8fd8ff"/>';
+  [[90,40],[860,34],[480,548]].forEach(([cx,cy])=>{s+='<g opacity=".85"><circle cx="'+cx+'" cy="'+cy+'" r="18" fill="#fff"/><circle cx="'+(cx+20)+'" cy="'+(cy-6)+'" r="22" fill="#fff"/><circle cx="'+(cx+42)+'" cy="'+cy+'" r="16" fill="#fff"/></g>';});
+  s+='<rect x="16" y="30" width="928" height="510" rx="46" fill="#a86b3c"'+st(5)+'/><rect x="16" y="18" width="928" height="502" rx="46" fill="#62cc68"'+st(5)+'/>';
+  for(let i=0;i<70;i++){const x=40+(i*137)%880,y=40+(i*71+i*i*3)%460;s+='<path d="M'+x+' '+y+' l3 -6 l3 6" fill="none" stroke="#4fb455" stroke-width="2.5" stroke-linecap="round"/>';}
+  s+='<rect x="30" y="'+(ROAD_Y-16)+'" width="900" height="32" rx="16" fill="#8d8aa3"'+st(4)+'/>';
+  for(let x=56;x<910;x+=46)s+='<rect x="'+x+'" y="'+(ROAD_Y-3)+'" width="24" height="6" rx="3" fill="#fff4b8"/>';
+  s+='<rect x="'+(ED_X-16)+'" y="'+(ROAD_Y+10)+'" width="32" height="240" rx="12" fill="#8d8aa3"'+st(4)+'/><rect x="'+(ED_X-14)+'" y="'+(ROAD_Y+6)+'" width="28" height="16" fill="#8d8aa3"/>';
+  for(let y=ROAD_Y+34;y<500;y+=42)s+='<rect x="'+(ED_X-3)+'" y="'+y+'" width="6" height="22" rx="3" fill="#fff4b8"/>';
+  s+='<rect x="'+(ED_X-22)+'" y="'+(ED_Y-2)+'" width="44" height="12" rx="4" fill="#b8b5cc"'+st(3)+'/>';
+  FAC.forEach(f=>{const dx=f.x+46;s+=f.y<ROAD_Y?'<rect x="'+dx+'" y="'+(f.y+88)+'" width="16" height="'+(ROAD_Y-16-(f.y+88)+4)+'" rx="4" fill="#d8d2c4"'+st(3)+'/>':'<rect x="'+dx+'" y="'+(ROAD_Y+12)+'" width="16" height="'+(f.y+34-(ROAD_Y+12))+'" rx="4" fill="#d8d2c4"'+st(3)+'/>';});
+  s+='<ellipse cx="128" cy="88" rx="62" ry="32" fill="#4cb8ff"'+st(4)+'/><ellipse cx="112" cy="80" rx="22" ry="8" fill="#bfeaff" opacity=".8"/><circle cx="150" cy="96" r="6" fill="#ffd84a"'+st(2)+'/>';
+  [[270,70,1.1],[316,96,.9],[352,58,1],[640,64,1],[690,96,.9],[740,60,1.1],[800,92,.9],[890,70,1],[60,470,1],[150,486,1.1],[260,478,.9],[360,460,1],[580,474,1],[680,488,1.1],[770,466,.9],[880,480,1],[420,412,.8],[540,420,.8],[210,108,.8]].forEach(([x,y,k])=>s+=tree(x,y,k));
+  s+=hospital();
+  FAC.forEach((f,i)=>{const L=facLocal(i),name=SITES[i].split(' ')[0];
+    s+='<g class="fac" tabindex="0" role="button" aria-label="'+SITES[i]+'" onclick="openFac('+i+')" onkeydown="if(event.key===\'Enter\')openFac('+i+')">';
+    if(live&&L.active.length)s+='<rect x="'+(f.x-10)+'" y="'+(f.y-10)+'" width="128" height="110" rx="26" fill="#96CB2D" fill-opacity="'+(0.10+0.25*L.adopt).toFixed(2)+'" stroke="#96CB2D" stroke-width="6" stroke-opacity="'+(0.3+0.7*L.adopt).toFixed(2)+'"/>';
+    s+=house(f.x,f.y,f.roof);
+    if(live){L.active.slice(0,6).forEach((c,k)=>{s+='<circle cx="'+(f.x+32+k*13)+'" cy="'+(f.y+26)+'" r="5.5" fill="'+CH_COLOR[c.id]+'"'+st(2.5)+'/>';});
+      s+=moodBubble(f.x+104,f.y-4,L.morale);
+      if(CHANGES.some(c=>S.ch[c.id].pending&&S.rolls[c.id].site===SITES[i]))s+='<g class="hop"><path d="M'+(f.x-6)+' '+(f.y-30)+' h30 a6 6 0 0 1 6 6 v18 a6 6 0 0 1 -6 6 h-12 l-6 8 l-2 -8 h-10 a6 6 0 0 1 -6 -6 v-18 a6 6 0 0 1 6 -6 Z" fill="#ffcc33"'+st(3)+'/><path d="M'+(f.x+5)+' '+(f.y-24)+' h8 M'+(f.x+7)+' '+(f.y-24)+' v6 l-5 9 h16 l-5 -9 v-6" fill="#fff" stroke="'+OL+'" stroke-width="2.4" stroke-linejoin="round"/></g>';}
+    const ly=f.y<ROAD_Y?f.y-24:f.y+112,lw=name.length*9.6+26;
+    s+='<rect x="'+(f.x+54-lw/2)+'" y="'+(ly-15)+'" width="'+lw+'" height="22" rx="11" fill="#fff"'+st(3)+'/><text x="'+(f.x+54)+'" y="'+(ly+1)+'" text-anchor="middle" class="svgfont" font-weight="900" font-size="14" fill="'+OL+'">'+name+'</text></g>';});
+  s+='<g class="fac" tabindex="0" role="button" aria-label="Hospital emergency department" onclick="openED()" onkeydown="if(event.key===\'Enter\')openED()"><rect x="370" y="0" width="220" height="240" fill="transparent"/></g>';
+  s+='<g id="walk"></g><g id="amb"></g></svg>';return s;}
+function mapLegend(){const act=CHANGES.filter(c=>S.ch[c.id].active);
+  return '<div class="mlegend"><span><i style="background:'+PAL.lime+'"></i>Morale good</span><span><i style="background:'+PAL.yellow+'"></i>so-so</span><span><i style="background:'+PAL.red+'"></i>low</span><span><i class="ring"></i>Change adopted (brighter = more)</span><span><i style="background:#ffcc33"></i>PDSA test running</span>'+act.map(c=>'<span><i style="background:'+CH_COLOR[c.id]+'"></i>'+c.short+'</span>').join('')+'</div>';}
+function openFac(i){if(busy())return;sfx('click');const L=facLocal(i);const tests=CHANGES.filter(c=>S.rolls[c.id].site===SITES[i]&&(S.ch[c.id].cycles||S.ch[c.id].pending));
+  const rows=L.active.length?L.active.map(c=>'<div class="prow"><div>'+c.short+'</div>'+(S.m.process?'<div class="bar"><i style="width:'+Math.round(L.local(c)*100)+'%"></i></div><b>'+Math.round(L.local(c)*100)+'%</b>':'<div class="muted" style="grid-column:2/4;font-size:12px">adoption unknown</div>')+'</div>').join('')+(S.m.process?'':'<p class="muted" style="font-size:12.5px">Without process measures you can\'t see how much each change is actually used here.</p>'):'<p class="muted" style="font-size:13px">No changes running here yet.</p>';
+  const t=tests.length?'<h4 style="margin:12px 0 4px">PDSA tests at this site</h4><ul style="margin:0;padding-left:18px;font-size:13px">'+tests.map(c=>{const st_=S.ch[c.id];return '<li>'+c.name+': '+(st_.pending?'running now':({works:'returns went down',mixed:'mixed result',none:'no clear change'})[st_.results[st_.results.length-1].cls])+'</li>';}).join('')+'</ul>':'';
+  showModal('<div class="ev-tag">Long-term care home</div><div class="vn"><div class="vn-face facpic"><svg viewBox="-14 -14 136 112" width="110" height="91">'+house(0,0,FAC[i].roof)+'</svg></div><div class="vn-body"><h3 style="margin:0 0 4px">'+SITES[i]+'</h3><p style="margin:0" class="muted">About 100 residents · Staff morale: <b>'+(L.morale>=60?'good':L.morale>=35?'so-so':'low')+'</b> ('+L.morale+')</p></div></div><h4 style="margin:12px 0 4px">Changes running here</h4>'+rows+t+'<button class="btn" style="margin-top:12px" onclick="closeModal()">Close</button>');}
+function openED(){if(busy())return;sfx('click');const o=S.obs[S.obs.length-1];
+  showModal('<div class="ev-tag">Riverbend General</div><h3>Emergency Department</h3>'+(!o?'<p>No weeks played yet.</p>':S.m.outcome?'<p>Last week, <b>'+o.x+' of '+o.n+'</b> LTC residents discharged back to their home returned within 30 days ('+pct(o.p)+').</p><p class="muted">Check your outcome chart before reading too much into one week.</p>':'<p>The charge nurse shrugs: "Felt like we saw a lot of LTC residents again." Without an outcome measure, that\'s all you know.</p>')+'<button class="btn" onclick="closeModal()">Close</button>');}
+
+/* ---------- walking nurses (ambient, follows ANIM toggle) ---------- */
+function facDoor(i){const f=FAC[i];return f.y<ROAD_Y?[f.x+54,f.y+92]:[f.x+54,ROAD_Y+30];}
+function routeTo(i){const d=facDoor(i);return [d,[d[0],ROAD_Y],[ED_X,ROAD_Y],[ED_X,ED_Y+14]];}
+const WALK={list:[{f:0,t:.2,dir:1,c:'#3fc6a8'},{f:5,t:.6,dir:-1,c:'#ff8fc0'},{f:2,t:.4,dir:1,c:'#4cb8ff'},{f:7,t:.1,dir:-1,c:'#9b8cf0'}],last:0,on:false};
+function walkLoop(ts){WALK.on=false;if(!S||S.over||!S.motion)return;WALK.on=true;
+  const layer=document.querySelector('#town #walk');const dt=Math.min(.05,(ts-(WALK.last||ts))/1000);WALK.last=ts;
+  if(layer){const mood=S.goodwill;if(layer.childElementCount!==WALK.list.length||layer.dataset.m!==String(mood>=50)){layer.innerHTML=WALK.list.map(w=>'<g>'+walkerSprite(mood,w.c)+'</g>').join('');layer.dataset.m=String(mood>=50);}
+    WALK.list.forEach((w,k)=>{const path=routeTo(w.f);w.t+=w.dir*dt*0.09;if(w.t>1||w.t<0){w.t=Math.max(0,Math.min(1,w.t));w.dir*=-1;if(w.dir>0)w.f=(w.f+3)%8;}
+      const p=pathAt(path,w.t),q=pathAt(path,Math.max(0,Math.min(1,w.t+w.dir*0.01)));const flip=q[0]<p[0]?-1:1;const off=k%2?7:-7;
+      layer.children[k].setAttribute('transform','translate('+(p[0]+off).toFixed(1)+','+(p[1]).toFixed(1)+') scale('+flip+',1)');});}
+  requestAnimationFrame(walkLoop);}
+function ensureWalk(){if(!WALK.on&&S&&!S.over&&S.motion&&!window.FAST){WALK.last=0;requestAnimationFrame(walkLoop);}}
+
+/* ---------- week transition & report ---------- */
+function ambPath(i){return routeTo(i);}
+function pathAt(pts,t){const seg=[];let L=0;for(let i=1;i<pts.length;i++){const d=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);seg.push(d);L+=d;}
+  let d=t*L;for(let i=0;i<seg.length;i++){if(d<=seg[i]){const k=seg[i]?d/seg[i]:0;return [pts[i][0]+(pts[i+1][0]-pts[i][0])*k,pts[i][1]+(pts[i+1][1]-pts[i][1])*k];}d-=seg[i];}return pts[pts.length-1];}
+function playTransition(){const R=S.review;
+  if(window.FAST||!S.motion){showReview();return;}
+  const town=$('town'),layer=town&&town.querySelector('#amb');if(!layer){showReview();return;}
+  S.anim=true;sfx('siren');
+  const tr=town.getBoundingClientRect(),hh=(document.querySelector('.top.hud')||{offsetHeight:0}).offsetHeight;if(tr.top<hh||tr.top>window.innerHeight*0.5)window.scrollTo({top:Math.max(0,tr.top+window.scrollY-hh-10)});
+  const ov=document.createElement('div');ov.className='weekov';ov.innerHTML='<div><span>Week '+R.w+'</span><b>➜</b><span>'+(R.w>=TOTAL_WEEKS?'The end!':'Week '+(R.w+1))+'</span></div>';town.appendChild(ov);
+  const k=Math.min(R.o.x,18),amb=[];
+  for(let i=0;i<k;i++){const g=document.createElementNS('http://www.w3.org/2000/svg','g');g.innerHTML=AMB;g.setAttribute('transform','translate(-100,-100)');layer.appendChild(g);amb.push({path:ambPath((i*5+R.w*3)%8),delay:i*120,el:g});}
+  const dur=1500,t0=performance.now(),minT=1200;
+  function step(t){let done=t-t0>minT;amb.forEach(a=>{const e=(t-t0-a.delay)/dur;if(e<1)done=false;
+      if(e<0||e>=1)a.el.setAttribute('transform','translate(-100,-100)');else{const ee=e<.5?2*e*e:1-Math.pow(-2*e+2,2)/2;const p=pathAt(a.path,ee),q=pathAt(a.path,Math.min(1,ee+.01));const flip=q[0]<p[0]-0.01?-1:1;const bob=Math.abs(Math.sin(e*28))*-3;
+        a.el.setAttribute('transform','translate('+p[0].toFixed(1)+','+(p[1]-8+bob).toFixed(1)+') scale('+flip+',1)');}});
+    if(!done)requestAnimationFrame(step);else{ov.remove();amb.forEach(a=>a.el.remove());S.anim=false;showReview();}}
+  requestAnimationFrame(step);}
+function showReview(){const R=S.review;if(!R)return;
+  if(window.FAST){closeReview();return;}
+  sfx('week');
+  const d=chartData(false);let status='';
+  if(S.m.outcome&&d&&d.pts.length){const i=d.pts.length-1,sig=d.sig[i];status=d.mode!=='p'?'Not enough data for control limits yet.':sig.length?'<b class="no">Special-cause signal</b> on your chart ('+(d.pts[i].p<d.centre?'below':'above')+' the centre line).':'Within normal week-to-week variation.';}
+  const ret=S.m.outcome?'<div class="rv-big"><span id="rvNum">0</span> <small>of '+R.o.n+' residents returned to the ED</small></div><div class="rv-sub">'+pct(R.o.p)+' · '+status+'</div>'
+    :'<div class="rv-big">???</div><div class="rv-sub">You\'re not measuring returns. All you hear is: "Felt like a busy week."</div>';
+  const gd=R.gwAfter-R.gwBefore;
+  const res=R.resolved.length?'<div class="rv-row"><b>PDSA results in</b><span>'+R.resolved.map(id=>{const st_=S.ch[id],l=st_.results[st_.results.length-1];return CH[id].short+': '+({works:'<span class="ok">returns went down</span>',mixed:'<span style="color:var(--warn)">mixed</span>',none:'<span class="no">no clear change</span>'})[l.cls];}).join('<br>')+'</span></div>':'';
+  const bdg=R.badges.length?'<div class="rv-badges">'+R.badges.map(b=>'<div class="bdg">'+medal(b,34)+'<div><b>Badge unlocked: '+b.name+'</b><span>'+b.desc+'</span></div></div>').join('')+'</div>':'';
+  showModal('<div class="ev-tag">Week '+R.w+' report</div><h3>'+(R.w>=TOTAL_WEEKS?'Final week complete!':'Week '+R.w+' is done!')+'</h3>'+ret+
+    (R.anec?'<div class="rv-row anec"><b>Heard on the floor</b><span>'+R.anec+'</span></div>':'')+'<div class="rv-row"><b>Team goodwill</b><span>'+S.goodwill+' <span class="'+(gd>0?'ok':gd<0?'no':'muted')+'">('+(gd>0?'+':'')+gd+')</span></span></div>'+res+
+    '<div class="rv-row"><b>Rank</b><span>'+rankName()+' · '+S.badges.length+'/'+BADGES.length+' badges</span></div>'+bdg+
+    '<button class="btn go" style="margin-top:14px" onclick="closeReview()">'+(S.week>TOTAL_WEEKS?'See final results ➜':'Start week '+S.week+' ➜')+'</button>');
+  if(R.badges.length)sfx('badge');
+  const el=$('rvNum');if(el){let n=0;const tgt=R.o.x,iv=setInterval(()=>{n=Math.min(tgt,n+Math.max(1,Math.ceil(tgt/15)));el.textContent=n;if(n>=tgt)clearInterval(iv);},45);}}
+function closeReview(){const R=S.review;if(!R)return;S.review=null;closeModal();S.lastAct=Date.now();render();if(S.week<=TOTAL_WEEKS)coachAfterWeek(R.resolvedNames);runQueue();}
+
+/* ---------- views ---------- */
+function render(){const app=$('app');if(!S){app.innerHTML=startView();renderCoach();return;}if(S.over){app.innerHTML=finalView();renderCoach();return;}app.innerHTML=gameView();renderCoach();ensureWalk();}
+function startView(){const seed=randomSeed();return '<div class="title"><div class="tlogo">Run the Unit!</div><div class="tsub">PHYSICIAN QUALITY IMPROVEMENT · LTC EDITION · A QI STRATEGY SIM</div>'+
+ '<div class="card tcard"><div class="tmap">'+townSVG()+'</div>'+
+ '<div class="meet">'+rowanSVG(64)+'<p><b>Dr. Rowan</b>, QI coach: "You lead a QI project across 8 long-term care homes. Your aim is to cut 30-day ED returns from 22% to 15% in 16 weeks, without fooling yourself along the way."</p></div>'+
+ howToWin()+'<label for="seed" class="lbl">SEED CODE <span class="muted">(same seed = identical scenario for everyone)</span></label><div class="seedrow"><input id="seed" value="'+seed+'" maxlength="24" aria-label="Seed code"><button class="btn ghost sm" onclick="$(\'seed\').value=randomSeed()">New seed</button></div>'+
+ '<label class="toggle"><input type="checkbox" id="coachOn" checked> Coach hints from Dr. Rowan <span class="muted">(recommended first time)</span></label>'+
+ '<label class="toggle"><input type="checkbox" id="soundOn"> Sound effects</label>'+
+ '<button class="btn start" onclick="initGame($(\'seed\').value,$(\'coachOn\').checked,$(\'soundOn\').checked)">➜ LET\'S GO!</button>'+
+ '<details><summary>How to play (2 min)</summary><ul><li>Each week you get <b>3 action coins</b>. Spend them, then <b>End week</b>: ambulances show who went back to the ED, and a week report follows. The game lasts 16 weeks.</li><li><b>Plan:</b> walk the process to find where returns come from, and build a driver diagram (your theory of change).</li><li><b>Measure:</b> define an outcome measure, pull baseline data, and add process and balancing measures.</li><li><b>Engage</b> the stakeholder groups whose work your changes affect.</li><li><b>Changes:</b> run a PDSA test at one site (1 coin, with a prediction) before spreading to all 8 sites (2 coins). Stop anything that isn\'t working.</li><li>Characters will bring you decisions. Some test whether you can tell signal from noise, and whether a project is really QI, or implementation, research or a simple fix in disguise.</li><li>Earn badges for good QI habits. Score (out of 1,000): outcome (400), strength of evidence (275), QI judgment (200) and leadership (125, scored on the five LEADS domains), minus any safety penalty. Goodwill is your team\'s mood: it speeds or slows adoption, and how you manage it shows up in your leadership score.</li></ul></details>'+
+ '<details><summary>Facilitator guide</summary><ol><li>Pick a seed (for example <code>PQI-1015</code>) and give it to the whole group. The same seed means identical data, noise and events, so scores are directly comparable.</li><li>Allow 20–30 minutes of play, solo or in pairs. Sound is off by default.</li><li>At the end, each player gets a one-line result with score, rank and badges. Ask them to paste it into the Canvas discussion or read it aloud.</li><li>Use the discussion questions on the results screen for a 15-minute debrief. Compare the top and bottom strategies.</li><li>Nothing is collected or sent anywhere. Refreshing the page restarts the game.</li></ol></details>'+
+ '<p class="muted" style="font-size:12px;margin-top:10px">Simulated scenario for education. Facilities, people, data and effect sizes are fictional and illustrative, not clinical guidance.</p></div></div>';}
+function coinSVG(full){return '<svg viewBox="0 0 26 26" width="24" height="24" style="display:block">'+(full?'<circle cx="13" cy="13" r="11" fill="#ffcc33"'+st(2.5)+'/><circle cx="13" cy="13" r="7" fill="none" stroke="#ff9f2e" stroke-width="2"/><path d="M13 8.5 l1.4 2.9 3.1 .4 -2.3 2.2 .6 3.1 -2.8 -1.5 -2.8 1.5 .6 -3.1 -2.3 -2.2 3.1 -.4 Z" fill="#fff6c2"/><ellipse cx="9" cy="8" rx="2.5" ry="1.6" fill="#fff" opacity=".7"/>':'<circle cx="13" cy="13" r="10" fill="#4a4266" stroke="#7d74a3" stroke-width="2.5" stroke-dasharray="4 3"/>')+'</svg>';}
+function header(){let coins='';for(let i=0;i<AP_WEEK;i++)coins+=coinSVG(i<S.ap);
+  const gc=S.goodwill<30?PAL.red:S.goodwill<50?PAL.orange:PAL.lime;
+  return '<header class="top hud"><div class="in"><div class="brand">RUN THE UNIT</div><div class="stats">'+
+   '<div class="stat"><label>Week</label><b>'+Math.min(S.week,TOTAL_WEEKS)+'/'+TOTAL_WEEKS+'</b></div>'+
+   '<div class="stat"><label>Actions</label><span class="coins" aria-label="'+S.ap+' actions left">'+coins+'</span></div>'+
+   '<div class="stat"><label>Goodwill</label><div class="gwrow"><div class="pbar"><i style="width:'+S.goodwill+'%;background:'+gc+'"></i></div><b>'+S.goodwill+'</b></div></div>'+
+   '<div class="stat"><label>Rank</label><button class="rankbtn" onclick="openBadges()">'+rankName()+' · '+S.badges.length+'/'+BADGES.length+' ★</button></div>'+
+   '<div class="stat tg"><button class="tgl" onclick="toggleSound()" aria-pressed="'+S.sound+'">SFX '+(S.sound?'ON':'OFF')+'</button><button class="tgl" onclick="toggleMotion()" aria-pressed="'+S.motion+'">ANIM '+(S.motion?'ON':'OFF')+'</button></div>'+
+   '<button id="c-end" class="btn hdr-end'+(S.ap===0?' pulse':'')+'" onclick="tryEndWeek()">'+endLabel()+'</button></div></div></header>';}
+function aimText(){if(S.rollout==='accepted'){const g=S.ch.ewt.active?100:Math.min(80,(S.week-1)*20);return '<b>GOAL (set by leadership):</b> all 8 homes live on CareAlert by week 8 <span class="golive"><i style="width:'+g+'%"></i><em>Go-live '+g+'%</em></span>';}return '<b>AIM:</b> 30-day ED returns 22% → 15% by week 16';}
+function endLabel(){return S.week>=TOTAL_WEEKS?'Finish ➜':'End week '+S.week+' ➜';}
+function locked(title,msg,act,cost,label){return '<div class="card"><div class="card-h"><h2>'+title+'</h2></div><div class="locked"><p>'+msg+'</p><button class="btn sm" onclick="act(\''+act+'\')"'+(S.ap<cost?' disabled':'')+'>'+label+' · '+cost+' action</button></div></div>';}
+function chartCard(){const d=chartData(false);
+  if(!d)return locked('Outcome measure','<b>No outcome measure defined.</b> You\'re running this project on anecdotes.','outcome',1,'Define outcome measure');
+  return '<div class="card"><div class="card-h"><h2>Outcome: 30-day ED return rate</h2><span class="chip">'+(d.mode==='p'?'p-chart':'Run chart')+'</span></div>'+chartSVG(d)+legend(d)+sigNote(d)+'</div>';}
+function processCard(){if(!S.m.process)return locked('Process measures','Without process measures you can\'t tell whether a change is really happening or only exists on paper.','process',1,'Add process measures');
+  const rows=CHANGES.filter(c=>S.ch[c.id].active).map(c=>{const st=S.ch[c.id];let why='';if(c.needs&&!S.engaged[c.needs])why=c.hardNeed?'Can\'t start: '+STAKE[c.needs].name+' not engaged':'Stuck near 30%: '+STAKE[c.needs].name+' not engaged';else if(st.stalled)why='Stalled: spread before testing';else if(S.goodwill<30)why='Slow: team goodwill is low';const a=Math.round(st.adoption*100);return '<div class="prow"><div>'+c.short+'</div><div class="bar"><i style="width:'+a+'%"></i></div><b>'+a+'%</b>'+(why?'<div class="why">'+why+'</div>':'')+'</div>';}).join('');
+  return '<div class="card"><div class="card-h"><h2>Process: adoption across sites</h2></div>'+(rows||'<p class="muted" style="font-size:13px">Nothing spread yet. Adoption of each spread change will show here.</p>')+'</div>';}
+function balancingCard(){if(!S.m.balancing)return locked('Balancing measure','Without a balancing measure, a change could be hurting residents and you\'d never know.','balancing',1,'Add balancing measure');
+  if(!S.harm.length)return '<div class="card"><div class="card-h"><h2>Balancing: delayed escalations</h2></div><p class="muted" style="font-size:13px">Data appears when you end the week.</p></div>';
+  const W=300,H=90,bw=W/TOTAL_WEEKS,mx=Math.max(4,...S.harm.map(x=>x.h));let s='<svg viewBox="0 0 '+W+' '+(H+16)+'" class="chart" role="img" aria-label="Delayed escalations per week">';
+  S.harm.forEach((x,i)=>{const h=(x.h/mx)*H;s+='<rect x="'+(i*bw+2)+'" y="'+(H-h)+'" width="'+(bw-4)+'" height="'+Math.max(h,1)+'" rx="2" style="fill:'+(x.h>=2?'var(--bad)':'var(--accent)')+'"><title>W'+x.w+': '+x.h+'</title></rect>';if(i%2===0)s+='<text class="ax" x="'+(i*bw+bw/2)+'" y="'+(H+13)+'" text-anchor="middle">W'+x.w+'</text>';});
+  s+='</svg>';const last=S.harm[S.harm.length-1].h;
+  return '<div class="card"><div class="card-h"><h2>Balancing: delayed escalations</h2></div>'+s+'<p style="font-size:12.5px;margin:6px 0 0" class="'+(last>=2?'no':'muted')+'">'+(last>=2?'Above the usual 0–1 per week. Something is causing harm.':'Typical: 0–1 per week.')+'</p></div>';}
+function logCard(){const items=S.log.slice().reverse().slice(0,40).map(l=>'<div><span class="wk">W'+l.w+'</span><span class="'+l.kind+'">'+esc(l.text)+'</span></div>').join('');return '<div class="card"><div class="card-h"><h2>Project log</h2></div><div class="log">'+(items||'<p class="muted" style="font-size:13px">Your decisions and results will appear here.</p>')+'</div></div>';}
+function measureTab(){const items=[
+  ['outcome','Outcome measure','30-day ED return rate for LTC residents, weekly on a p-chart. Tells you whether the system is improving.',1,S.m.outcome],
+  ['baseline','Baseline data','12 weeks of pre-project data. Gives you a stable centre line and control limits to judge change against.',2,S.m.baseline],
+  ['process','Process measures','How much each spread change is actually used at each site. Separates "the idea doesn\'t work" from "nobody\'s doing it."',1,S.m.process],
+  ['balancing','Balancing measure','Delayed or missed escalations. Watches for harm the changes might cause elsewhere.',1,S.m.balancing]];
+  return items.map(([k,t,d,c,done])=>'<div class="item'+(done?' done':'')+'"><h4>'+t+'</h4><p>'+d+'</p><div class="acts">'+(done?'<span class="ok">✓ In place</span>':'<button class="btn sm" onclick="act(\''+k+'\')"'+(S.ap<c||(k==='baseline'&&!S.m.outcome)?' disabled':'')+'>Set up · '+c+' action'+(c>1?'s':'')+'</button>'+(k==='baseline'&&!S.m.outcome?'<span class="muted" style="font-size:12px">Needs an outcome measure first</span>':''))+'</div></div>').join('');}
+function engageTab(){return '<p class="muted" style="font-size:13px;margin-top:0">Changes go better when the people doing the work help design them. Engaging also builds goodwill.</p>'+Object.entries(STAKE).map(([k,v])=>'<div class="item'+(S.engaged[k]?' done':'')+'"><h4>'+v.name+'</h4><p>'+v.desc+'</p><div class="acts">'+(S.engaged[k]?'<span class="ok">✓ Engaged</span>':'<button class="btn sm" onclick="act(\'engage\',\''+k+'\')"'+(S.ap<1?' disabled':'')+'>Engage · 1 action</button>')+'</div></div>').join('');}
+function changesTab(){const frozen=S.freezeUntil>S.week;return (frozen?'<p class="signote on" style="margin-top:0">Spreading is paused until week '+S.freezeUntil+'.</p>':'')+CHANGES.map(c=>{const st=S.ch[c.id];const last=st.results[st.results.length-1];
+  let status='<span class="muted">Untested</span>';
+  if(st.pending)status='<span style="color:var(--warn)">PDSA running at '+S.rolls[c.id].site+'. Results next week.</span>';
+  else if(st.active)status='<span class="ok">Spread to all 8 sites</span>'+(S.m.process?' · adoption '+Math.round(st.adoption*100)+'%':'');
+  else if(last)status=({works:'<span class="ok">Tested: returns went down</span>',mixed:'<span style="color:var(--warn)">Tested: mixed result</span>',none:'<span class="no">Tested: no clear change</span>'})[last.cls]+(st.everActive?' · stopped':'');
+  let btns='';
+  if(st.active)btns='<button class="btn danger sm" onclick="act(\'stop\',\''+c.id+'\')">Stop</button>';
+  else if(!st.pending)btns='<button class="btn ghost sm" onclick="openTest(\''+c.id+'\')"'+(S.ap<1?' disabled':'')+'>'+(st.cycles?'Test again':'Test (PDSA)')+' · 1</button><button class="btn sm" onclick="act(\'spread\',\''+c.id+'\')"'+(S.ap<2||frozen?' disabled':'')+'>Spread to all sites · 2</button>';
+  return '<div class="item"><h4>'+c.name+'</h4><p>'+c.desc+'</p><div class="status">'+status+'</div>'+(last&&!st.pending?'<div class="res">'+esc(last.text)+'</div>':'')+'<div class="acts">'+btns+'</div></div>';}).join('');}
+function gameView(){const t=S.tab;const tabs=[['plan','Plan'],['measure','Measure'],['engage','Engage'],['changes','Changes']];
+  const body=t==='plan'?planTab():t==='measure'?measureTab():t==='engage'?engageTab():changesTab();
+  const label=endLabel();
+  const done=S.ap===0?'<div class="donebar"><span><b>All coins spent!</b> '+(S.week>=TOTAL_WEEKS?'Finish the project to see your results.':'End week '+S.week+' to see what happens.')+'</span><button class="btn sm" onclick="tryEndWeek()">'+label+'</button></div>':'';
+  return header()+'<div class="wrap"><div class="aimbar">'+aimText()+''+(S.freezeUntil>S.week?'<span class="warnchip">Spreading paused until W'+S.freezeUntil+'</span>':'')+'</div>'+done+
+   '<div class="grid"><div class="col"><div class="card mapcard" id="town"><div class="card-h"><h2>Your district</h2><span class="chip">Click a building</span></div>'+townSVG()+mapLegend()+'</div>'+
+   '<div class="roomlbl">▼ DATA ROOM</div><div id="c-chart">'+chartCard()+'</div><div class="row2">'+processCard()+balancingCard()+'</div></div>'+
+   '<div class="col"><div class="card" id="c-tabs"><div class="spendlbl">'+(S.ap?'Spend your '+S.ap+' coin'+(S.ap>1?'s':'')+' here: pick a tab 👇':'Coins spent. Free actions are still counted on the tabs 👇')+'</div><div class="tabs" role="tablist">'+tabs.map(([k,l])=>{const n=tabCount(k);return '<button role="tab" class="'+(t===k?'on':'')+(S.tabsSeen[k]?'':' unseen')+'" onclick="setTab(\''+k+'\')">'+l+(n?'<span class="tcount">'+n+'</span>':'')+'</button>';}).join('')+'</div>'+body+'</div>'+logCard()+
+   '<div class="endbar"><button id="c-end-m" class="btn'+(S.ap===0?' pulse':'')+'" onclick="tryEndWeek()">'+label+'</button></div></div></div></div>';}
+
+/* ---------- finish & scoring ---------- */
+function finish(){
+  S.over=true;
+  const m=S.ch.mandate;
+  if(m.active&&!S.incident){S.penalty+=100;S.penLog.push({w:TOTAL_WEEKS,pts:100,why:'Mandatory approval was still running when the project ended; the post-project review found residents had been delayed in getting acute care.'});fbAdd('Change ideas',false,'Mandatory approval was still running at the end. The post-project review found residents had been delayed in getting acute care (−100).');}
+  if(!S.charter)fbAdd('Is it QI?',false,'Skipped the charter check. Telling QI, implementation and research apart on paper is where masked projects get caught.');
+  if(!S.m.outcome)fbAdd('Measures',false,'Never defined an outcome measure, so you couldn\'t demonstrate any improvement (outcome score halved).');
+  else if(!S.m.baseline)fbAdd('Measures',false,'No pre-project baseline, so it was hard to tell whether your changes caused improvement.');
+  if(!S.m.process)fbAdd('Measures',false,'No process measures: you couldn\'t see whether changes were actually being used.');
+  if(!S.m.balancing)fbAdd('Measures',false,'No balancing measure: unintended harm would have been invisible.');
+  if(S.pdsa.count===0)fbAdd('PDSA',false,'Never ran a PDSA test. Every change went straight to full spread or was never tried.');
+  const spread=CHANGES.filter(c=>S.ch[c.id].everActive);
+  if(!spread.length)fbAdd('Change ideas',false,'No changes were spread. Testing without spreading leaves improvement on the table.');
+  spread.forEach(c=>{const st=S.ch[c.id];
+    if(c.id==='poster')fbAdd('Change ideas',false,'Spent actions spreading an education campaign. Education alone is a weak change.');
+    else if(!c.harm&&c.needs&&!S.engaged[c.needs]&&st.active)fbAdd('Change ideas',false,'"'+c.name+'" was held back because '+STAKE[c.needs].name+' weren\'t engaged.');
+    else if((c.tier==='hi'||c.tier==='mod')&&st.active&&capFor(c.id)===1)fbAdd('Change ideas',true,'Spread "'+c.name+'" ('+TIERS[c.tier].toLowerCase()+') with the right people engaged.');});
+  const last=S.obs.slice(-4),finalP=last.reduce((a,o)=>a+o.x,0)/last.reduce((a,o)=>a+o.n,0),rel=(S.baseMean-finalP)/S.baseMean;
+  let outcome=Math.max(0,Math.min(400,rel/0.4*400));if(!S.m.outcome)outcome*=0.5;
+  const d=chartData(false);const shift=!!(d&&d.mode==='p'&&d.pts.some((o,i)=>!o.hist&&d.sig[i].includes('shift')&&o.p<d.centre));
+  if(shift)fbAdd('Variation',true,'Your chart showed a sustained shift below the centre line: a real improvement signal, not just a good week.');
+  else if(S.m.outcome&&rel>0.1)fbAdd('Variation',false,'Results improved, but your chart never showed a clear special-cause shift, so the evidence is weaker than it looks.');
+  // planning tools
+  const firstSpread=Math.min(...CHANGES.map(c=>S.ch[c.id].everActive?S.ch[c.id].spreadWeek:99));
+  let mapPts=0;
+  if(S.maps.length){mapPts=15;const full=S.maps.some(m=>m.rev.every(Boolean));if(full)mapPts+=15;
+    fbAdd('Planning',true,'Walked the process to find where avoidable returns come from'+(S.maps[0].week<firstSpread?', before spreading any change.':'.'));
+    if(full)fbAdd('Planning',true,'Walked the process with frontline staff, so every step of the map was clear.');
+    else fbAdd('Planning',false,'Your process map had gaps: steps stay unclear unless the people who do that work walk it with you.');}
+  else fbAdd('Planning',false,'Never mapped the process, so you chose changes without knowing where returns come from.');
+  const dds=ddScore();
+  if(S.dd.saves.length){
+    if(dds.real>=3&&!dds.dis)fbAdd('Planning',true,'Chose sound primary drivers for the aim.');
+    if(dds.dis)fbAdd('Planning',false,'Your driver diagram included a distractor driver. See the comparison below for why it doesn\'t drive 30-day returns.');
+    if(dds.real<4)fbAdd('Planning',false,'Your driver diagram missed '+(4-dds.real)+' of the 4 primary drivers.');
+    if(dds.revised)fbAdd('Planning',true,'Revised the driver diagram as you learned. It\'s a living theory, not a one-time form.');
+    else fbAdd('Planning',false,'Never revised the driver diagram. Update it as PDSA results and data come in.');}
+  else fbAdd('Planning',false,'Never built a driver diagram, so your change ideas weren\'t tied to a theory of what drives returns.');
+  let ev=mapPts+dds.pts;if(S.m.outcome)ev+=30;if(S.m.baseline)ev+=40;if(S.m.process)ev+=25;if(S.m.balancing)ev+=25;ev+=Math.min(45,S.pdsa.pred*15)+Math.min(10,S.pdsa.correct*5)+(shift?30:0);
+  const nj=Object.keys(S.judg).length,jd=nj?Math.round(200*Object.values(S.judg).filter(Boolean).length/nj):0,jmax=nj;
+  S.result={shift};const lead=leadScore();const gw=lead.total;
+  const total=Math.max(0,Math.round(outcome+ev+gw+jd-S.penalty));
+  const strat=CHANGES.filter(c=>S.ch[c.id].active).map(c=>c.short).join(' + ')||'no changes spread';
+  S.result={total,outcome:Math.round(outcome),ev,gw,jd,jmax,finalP,rel,shift,strat,lead};
+  checkBadges(true,true);
+  curEv=null;closeModal();render();window.scrollTo(0,0);
+}
+function planCompare(){const c=S.dd.current,built=S.dd.saves.length;
+  const dname=v=>v==='none'?'Doesn\'t fit a driver':v?DRV[v].name:'<span class="muted">Not placed</span>';
+  const drv='<table class="truth"><thead><tr><th>Candidate driver</th><th>You</th><th>Reference</th></tr></thead><tbody>'+DRIVERS.map(d=>'<tr><td>'+d.name+'</td><td>'+(c.drivers.includes(d.id)?(d.real?'<span class="ok">✓ Chosen</span>':'<span class="no">✗ Chosen</span>'):(d.real?'<span class="no">Missed</span>':'<span class="ok">Left out</span>'))+'</td><td>'+(d.real?'<span class="tag hi">Primary driver</span>':'<span class="tag harm">Distractor</span><br><span class="muted" style="font-size:12px">'+d.why+'</span>')+'</td></tr>').join('')+'</tbody></table>';
+  const lk='<table class="truth" style="margin-top:12px"><thead><tr><th>Change idea</th><th>Your driver</th><th>Reference</th><th></th></tr></thead><tbody>'+CHANGES.map(ch=>{const y=c.links[ch.id]||'',r=REF_LINK[ch.id],ok=y===r;return '<tr><td>'+ch.name+'</td><td>'+dname(y)+'</td><td>'+dname(r)+(ch.id==='mandate'?'<br><span class="muted" style="font-size:12px">Harmful: it reduces returns by delaying needed care.</span>':ch.id==='poster'?'<br><span class="muted" style="font-size:12px">Education alone doesn\'t act on a driver.</span>':'')+'</td><td>'+(built?(ok?'<span class="ok">✓</span>':'<span class="no">✗</span>'):'')+'</td></tr>';}).join('')+'</tbody></table>';
+  return '<div class="card"><div class="card-h"><h2>Driver diagram: yours vs reference</h2>'+(built?'':'<span class="chip">Not built</span>')+'</div><div style="overflow-x:auto">'+drv+lk+'</div></div>'+
+    '<div class="card"><div class="card-h"><h2>Full process map</h2><span class="chip">All hotspots revealed</span></div>'+mapSVG(HOTS.map(()=>true))+mapList(HOTS.map(()=>true))+'</div>';}
+function grade(t){return t>=800?'QI leader':t>=650?'Solid improver':t>=500?'Learning by doing':'Back to the PDSA drawing board';}
+function shareLine(){const r=S.result;return 'Run the Unit · Seed '+S.seed+' · Score '+r.total+' · '+rankName()+' · Badges '+S.badges.length+'/'+BADGES.length+' · Leadership '+r.gw+'/125 · Returns '+pct(S.baseMean)+'→'+pct(r.finalP)+' · '+r.strat;}
+function copyShare(){const el=$('shareTxt');const v=el.value;const done=()=>toast('Copied. Paste it into the Canvas discussion.');
+  if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(v).then(done,()=>{el.select();try{document.execCommand('copy');done();}catch(e){toast('Select the text and copy it manually.');}});
+  else{el.select();try{document.execCommand('copy');done();}catch(e){toast('Select the text and copy it manually.');}}}
+function finalView(){const r=S.result;
+  const comp=(l,v,max,neg)=>'<div class="comp"><span>'+l+'</span><div class="bar"><i style="width:'+(max?Math.max(0,Math.min(100,v/max*100)):0)+'%;'+(neg?'background:var(--bad)':'')+'"></i></div><b>'+(neg?'−':'')+v+(max?' / '+max:'')+'</b></div>';
+  const d=chartData(true);
+  const fbHtml=OBJS.map(o=>{const items=S.fb.filter(f=>f.obj===o);if(!items.length)return '';return '<h3>'+OBJ_LABEL[o]+'</h3><ul>'+items.sort((a,b)=>b.good-a.good).map(f=>'<li class="'+(f.good?'g':'b')+'">'+esc(f.text)+'</li>').join('')+'</ul>';}).join('');
+  const truth='<table class="truth"><thead><tr><th>Change idea</th><th>True effect</th><th>Your use</th><th>Lesson</th></tr></thead><tbody>'+CHANGES.map(c=>{const st=S.ch[c.id];const use=st.active?'Spread'+(S.m.process?' ('+Math.round(st.adoption*100)+'%)':''):st.everActive?'Spread, then stopped':st.cycles?'Tested only':'Not used';return '<tr><td>'+c.name+(c.needs?'<br><span class="muted" style="font-size:11.5px">Needs: '+STAKE[c.needs].name+'</span>':'')+'</td><td><span class="tag '+c.tier+'">'+TIERS[c.tier]+'</span></td><td>'+use+'</td><td class="muted">'+c.lesson+'</td></tr>';}).join('')+'</tbody></table>';
+  return '<header class="top hud"><div class="in"><div class="brand">RUN THE UNIT<span>RESULTS</span></div><div class="stats"><div class="stat"><label>Seed</label><code>'+esc(S.seed)+'</code></div></div></div></header><div class="wrap"><div class="col">'+
+  '<div class="card"><div class="score"><div><div class="big">'+r.total+'</div><div class="muted">out of 1,000</div><div style="font-weight:700;margin-top:4px">'+grade(r.total)+'</div></div><div>'+
+   comp('Outcome',r.outcome,400)+comp('Evidence',r.ev,275)+comp('QI judgment',r.jd,200)+comp('Leadership',r.gw,125)+(S.penalty?comp('Safety penalty',S.penalty,0,true)+'<div class="penlog">'+S.penLog.map(x=>'<div>−'+x.pts+' · week '+x.w+': '+x.why+'</div>').join('')+'</div>':'')+
+   '<p style="font-size:13.5px;margin:8px 0 0">Returns went from <b>'+pct(S.baseMean)+'</b> (baseline) to <b>'+pct(r.finalP)+'</b> (average of the last 4 weeks), a '+(r.rel>=0?(r.rel*100).toFixed(0)+'% relative reduction':'rise of '+(-r.rel*100).toFixed(0)+'%')+'. '+(r.finalP<=AIM?'<span class="ok">Aim met.</span>':'<span class="muted">Aim of 15% not met.</span>')+(r.jmax<9?' <span class="muted">(QI judgment is scored on the '+r.jmax+' decisions that came up in this play-through.)</span>':'')+'</p></div></div>'+
+   '<div class="share"><input id="shareTxt" readonly value="'+esc(shareLine())+'" aria-label="Result line to share"><button class="btn sm" onclick="copyShare()">Copy result</button></div></div>'+
+  leadCard()+(S.rolloutEver?'<div class="card"><div class="card-h"><h2>Go-live vs outcome</h2><span class="chip">The rollout trap</span></div><div class="gvo"><div><span>CareAlert go-live</span><b class="'+(S.ch.ewt.everActive?'ok':'no')+'">'+(S.ch.ewt.everActive?'8 of 8 homes ✓':'Not live')+'</b></div><div><span>30-day ED returns</span><b>'+pct(S.baseMean)+' → '+pct(r.finalP)+'</b></div></div><p style="font-size:13.5px;margin:10px 0 0">You framed this project as a rollout'+(S.rollout==='reframedLate'?' (and reframed it later)':'')+'. A go-live tracker can hit 100% while residents keep returning to the ED. The go-live date measures whether something was installed; only the outcome measure tells you whether care improved.</p></div>':'')+
+  '<div class="card"><div class="card-h"><h2>Badges · '+rankName()+'</h2><span class="chip">'+S.badges.length+' of '+BADGES.length+'</span></div><div class="badgegrid">'+BADGES.map(b=>{const has=S.badges.includes(b.id);return '<div class="bdg'+(has?'':' locked')+'">'+medal(b,40,!has)+'<div><b>'+b.name+'</b><span>'+b.desc+'</span></div></div>';}).join('')+'</div></div>'+
+  '<div class="card"><div class="card-h"><h2>What really happened</h2><span class="chip">Full data revealed</span></div>'+chartSVG(d)+legend(d)+'<p class="muted" style="font-size:12.5px">Every week, including any you weren\'t measuring. Special-cause rules: point outside 3σ limits; 8 points on one side of centre; 6-point trend; 2 of 3 beyond 2σ.</p></div>'+
+  '<div class="card fbg"><div class="card-h"><h2>Debrief by learning objective</h2></div>'+(fbHtml||'<p class="muted">No decisions recorded.</p>')+'</div>'+
+  planCompare()+
+  '<div class="card"><div class="card-h"><h2>What each change idea really did</h2></div><div style="overflow-x:auto">'+truth+'</div></div>'+
+  '<div class="card"><div class="card-h"><h2>Discussion questions</h2></div><ol style="margin:0;padding-left:20px;font-size:14px"><li>Which measure told you earliest that a change wasn\'t working: the outcome chart or the process measures?</li><li>Did anyone spread mandatory physician approval? What did the outcome chart show compared with the balancing measure?</li><li>Where did you see special-cause versus common-cause variation, and how did you respond to each?</li><li>Who accepted the CareAlert rollout as their QI project? What did their go-live tracker say compared with their outcome chart?</li><li>Which decisions were QI, and which were really implementation, research or a simple "just do it"? What tipped each one?</li><li>Which LEADS domain was your weakest? What would that look like on your real QI project?</li><li>Same seed, different scores: what separated the top strategies from the rest?</li></ol></div>'+
+  '<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" onclick="initGame(\''+esc(S.seed)+'\','+(S.coach?'true':'false')+','+(S.sound?'true':'false')+')">Replay same seed</button><button class="btn ghost" onclick="S=null;render();window.scrollTo(0,0)">New game</button></div>'+
+  '</div></div>';}
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!curEv&&!$('modal').classList.contains('hidden'))closeModal();});
+render();
+</script>
+</body>
+</html>
